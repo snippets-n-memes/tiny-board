@@ -4,7 +4,7 @@
 enum Windows{unassigned, inprogress, blocked, completed};
 
 WINDOW * newMenu(int x);
-void drawMenu(WINDOW * menu);
+void drawMenu(WINDOW * menu, char* title);
 
 int main(){
   initscr();

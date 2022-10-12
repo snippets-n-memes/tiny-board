@@ -11,5 +11,6 @@ typedef struct {
 } Ticket;
 
 WINDOW *newMenu(int x);
+Ticket *newTicket(WINDOW *menu, char *title, char *desc);
 void drawMenu(WINDOW *menu, char* title);
-Ticket *initTicket(WINDOW *menu, char *title, char *desc);
+void drawTicket(Ticket *);

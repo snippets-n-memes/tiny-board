@@ -1,2 +1,5 @@
-main: main.c main.h
-	clang main.c -lncurses -o tiny-board
+c: main.c main.h
+	gcc main.c -lncurses -DCTEST -o tiny-board
+
+go: main.go main.c main.h
+	go build

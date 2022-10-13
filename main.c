@@ -1,7 +1,15 @@
 #include "main.h"
 
-int main(){
+#ifdef CTEST
+int main() {
+  run();
+  return(0);
+}
+#endif
+
+void run(){
   initscr();
+  curs_set(0);
   addstr("This is the standard screen\n");
   refresh();
   getch();
@@ -25,7 +33,6 @@ int main(){
   drawTicket(&test1);
 
   endwin();
-  return(0);
 }
 
 WINDOW *newMenu(int x){
@@ -58,14 +65,24 @@ void drawMenu(WINDOW * menu, char* title) {
 
 void drawTicket(Ticket *ticket){
   Ticket t = *ticket;
-  wmove(t.menu,3,2);
+  int len = strlen(t.description);
+  int y = 3;
+  int menuWidth = WWIDTH - 6;
+
+  wmove(t.menu,y,2);
   waddstr(t.menu,t.name);
-  wmove(t.menu,4,2);
+  wmove(t.menu,++y,2);
   whline(t.menu, ACS_HLINE, WWIDTH - 5);
-  wmove(t.menu,5,2);
-  wprintw(t.menu,"- %.*s", WWIDTH - 6, t.description);
-  wmove(t.menu,6,2);
-  wprintw(t.menu,"%.*s", WWIDTH - 6, t.description+WWIDTH-6);
+
+  for (int i = 0; i < len; i += WWIDTH - 6) {
+    wmove(t.menu,++y,2);
+    if (!i){
+      wprintw(t.menu,"- %.*s", menuWidth, t.description + i);
+    } else {
+      wprintw(t.menu,"%.*s", menuWidth, t.description + i);
+    }
+  }
+
   wrefresh(t.menu);
   wgetch(t.menu);
 }

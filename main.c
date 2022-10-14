@@ -77,7 +77,6 @@ void drawMenu(WINDOW *menu, char* title) {
   //underline
   whline(menu, ACS_HLINE, WWIDTH-2);
 
-  //draw window
   wrefresh(menu);
 }
 
@@ -86,6 +85,7 @@ int drawTicket(Ticket *ticket, int line){
   int y = line;
   int menuWidth = WWIDTH - 6;
   int len = strlen(t.description);
+  char* head = t.description;
 
   wmove(t.menu,y,2);
   waddstr(t.menu,t.name);
@@ -94,8 +94,9 @@ int drawTicket(Ticket *ticket, int line){
 
   for (int i = 0; i < len; i+= menuWidth) {
     wmove(t.menu,++y,3);
-    if ((t.description + i)[0] == ' ') i++;
-    wprintw(t.menu,"%.*s", menuWidth, t.description + i);
+    if ((head + i)[0] == ' ') i++;
+    if ((head + i)[menuWidth] != ' ' &&)
+    wprintw(t.menu,"%.*s", menuWidth, head + i);
   }
 
   wrefresh(t.menu);

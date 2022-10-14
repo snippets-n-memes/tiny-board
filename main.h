@@ -19,4 +19,5 @@ Ticket *newTicket(WINDOW *menu, char *title, char *desc);
 void drawMenu(WINDOW *menu, char* title);
 int drawTicket(Ticket *, int lineNumber);
 void selectTicket(Ticket *);
-void clearTicketDesc(Ticket *ticket);
+void deselectTicket(Ticket *);
+void clearTicketDesc(Ticket *);

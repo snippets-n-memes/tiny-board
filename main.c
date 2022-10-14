@@ -7,26 +7,30 @@ int main() {
 }
 #endif
 
+WINDOW *menu[4]; 
+
 void run(){
   initscr();
   curs_set(0);
   addstr("This is the standard screen\n");
+  move(1,0);
+  printw("WWIDTH = %d", WWIDTH);
   refresh();
   getch();
 
-  WINDOW *menu[4]; 
   char* title[4] = {"Unassigned", "In Progress", "Blocked", "Completed"};
 
-  // menu[unassigned] = newMenu(0);
-  // menu[inprogress] = newMenu(WWIDTH);
-  // menu[blocked] = newMenu(2*WWIDTH);
-  // menu[completed] = newMenu(3*WWIDTH);
   for(int i = 0; i < 4; i++) menu[i] = newMenu(i*WWIDTH);
 
-  Ticket test1 = *newTicket(menu[unassigned],"testing", "test tickets with a long description.");
-  Ticket test2 = *newTicket(menu[unassigned],"test chain", "test tickets adding an addtional ticket, with a long description.");
-  Ticket test3 = *newTicket(menu[unassigned],"test chain", "overwrite... adding an addtional ticket, with a long description.");
-  Ticket test4 = *newTicket(menu[inprogress],"test chain", "make decision about managing tickets as files, or by writing driver code in go and manage in memory");
+  Ticket test1 = *newTicket("testing", "test tickets with a long description.");
+  Ticket test2 = *newTicket("test chain", "test tickets adding an addtional ticket, with a long description.");
+  Ticket test3 = *newTicket("test chain", "make decision about managing tickets as files, or by writing driver code in go and manage in memory");
+  Ticket test4 = *newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
+
+  addTicket(unassigned, &test1);
+  addTicket(unassigned, &test2);
+  addTicket(inprogress, &test3);
+  addTicket(inprogress, &test4);
 
   for(int i = 0; i < 4; i++) {
     drawMenu(menu[i], title[i]);
@@ -34,14 +38,14 @@ void run(){
   }
   
   test1.pos = drawTicket(&test1, 4);
-  test2.pos = drawTicket(&test2, test1.pos+2);
-  test3.pos = drawTicket(&test3, test1.pos+2);
-  test4.pos = drawTicket(&test4, 4);
+  test2.pos = drawTicket(&test2, test1.pos+1);
+  test3.pos = drawTicket(&test3, 4);
+  drawTicket(&test4, test3.pos+1);
 
-  selectTicket(&test4);
-  deselectTicket(&test4);
   selectTicket(&test3);
+  deselectTicket(&test3);
   selectTicket(&test1);
+  selectTicket(&test2);
 
   endwin();
 }
@@ -50,20 +54,24 @@ WINDOW *newMenu(int x){
   return newwin(LINES,WWIDTH,0,x);
 }
 
-Ticket *newTicket(WINDOW *menu, char *title, char *desc) {
+Ticket *newTicket(char *title, char *desc) {
   Ticket* res = malloc(sizeof(Ticket));
   res->name=title;
   res->description=desc;
-  res->menu=menu;
   res->pos=3;
   res->size = 0;
   int len = strlen(desc);
   for (int i = 0; i < len; i += WWIDTH - 6) {
     res->size++;
   }
+
+  addTicket(unassigned, res);
   return res;
 }
 
+void addTicket(Windows status, Ticket *ticket) {
+  ticket->menu = menu[status];
+}
 
 void drawMenu(WINDOW *menu, char* title) {
   //border
@@ -92,11 +100,38 @@ int drawTicket(Ticket *ticket, int line){
   wmove(t.menu,++y,2);
   whline(t.menu, ACS_HLINE, WWIDTH - 5);
 
-  for (int i = 0; i < len; i+= menuWidth) {
+  int i = 0;
+  while (i < len) {
+    // trim leading whitespace
+    if ((head + i)[0] == ' ') {
+      i++;
+      continue;
+    }
+
+    // nextline
     wmove(t.menu,++y,3);
-    if ((head + i)[0] == ' ') i++;
-    if ((head + i)[menuWidth] != ' ' &&)
-    wprintw(t.menu,"%.*s", menuWidth, head + i);
+
+    // lastline
+    if (i + menuWidth > len) {
+      wprintw(t.menu,"%.*s", menuWidth, head + i);
+      break;
+    }
+
+    // find last whitespace in slice
+    if ((head+i)[menuWidth-1] != ' ' && (head+i)[menuWidth] != ' ') {
+      int indexOf = 0;
+      for (int j = indexOf; j < menuWidth; j++) {
+        if ((head+i)[j] == ' ') {
+          indexOf = j;
+        }
+      }
+
+      wprintw(t.menu,"%.*s", indexOf, head + i);
+      i += indexOf;
+    } else {
+      wprintw(t.menu,"%.*s", menuWidth, head + i);
+      i += menuWidth;
+    }
   }
 
   wrefresh(t.menu);

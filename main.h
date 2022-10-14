@@ -15,8 +15,9 @@ typedef struct {
 
 void run();
 WINDOW *newMenu(int x);
-Ticket *newTicket(WINDOW *menu, char *title, char *desc);
-void drawMenu(WINDOW *menu, char* title);
+Ticket *newTicket(char *title, char *desc);
+void drawMenu(WINDOW *menu, char *title);
+void addTicket(Windows menu, Ticket *);
 int drawTicket(Ticket *, int lineNumber);
 void selectTicket(Ticket *);
 void deselectTicket(Ticket *);

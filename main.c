@@ -9,6 +9,7 @@ int main() {
 
 WINDOW *menu[4]; 
 Ticket *tickets[4];
+int nextId = 0;
 
 void run(){
   initscr();
@@ -29,7 +30,7 @@ void run(){
   newTicket("test chain", "test tickets adding an addtional ticket, with a long description.");
   // Ticket test3 = *
   newTicket("test chain", "make decision about managing tickets as files, or by writing driver code in go and manage in memory");
-  // Ticket test4 = *
+  Ticket test4 = *
   newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
 
   // addTicket(unassigned, &test1);
@@ -43,6 +44,12 @@ void run(){
   }
 
   drawList(unassigned);
+  removeTicket(unassigned,test4.id);
+  wclear(menu[unassigned]);
+  drawMenu(menu[unassigned], title[unassigned]);
+  drawList(unassigned);
+  wrefresh(menu[unassigned]);
+  wgetch(menu[unassigned]);
   
   // test1.pos = drawTicket(&test1, 4);
   // test2.pos = drawTicket(&test2, test1.pos+1);
@@ -61,8 +68,11 @@ WINDOW *newMenu(int x){
   return newwin(LINES,WWIDTH,0,x);
 }
 
+int newId() { return ++nextId;}
+
 Ticket *newTicket(char *title, char *desc) {
   Ticket* res = malloc(sizeof(Ticket));
+  res->id = newId();
   res->name = title;
   res->description = desc;
   res->pos = 3;
@@ -123,6 +133,31 @@ void addTicket(Windows status, Ticket *ticket) {
     while(i->next != NULL) i = i->next;
     i->next = ticket;
   }
+}
+
+Ticket *removeTicket(Windows status, int id) {
+  Ticket *i = tickets[status];
+  if (i->id == id) {
+    tickets[status] = i->next;
+    i->next = NULL;
+    i->status = none;
+    return i;
+  }
+
+  while(i->next != NULL && i->next->id != id) i=i->next;
+
+  if (i->next->id == id) {
+    Ticket *temp = i->next;
+    if(temp->next != NULL) {
+      i->next = temp->next;
+      temp->next = NULL;
+    } else {
+      i->next = NULL;
+    }
+    temp->status = none;
+    return temp;
+  }
+  return NULL;
 }
 
 void drawMenu(WINDOW *menu, char* title) {

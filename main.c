@@ -24,32 +24,60 @@ void run(){
 
   for(int i = 0; i < 4; i++) menu[i] = newMenu(i*WWIDTH);
 
-  // Ticket test1 = *
-  newTicket("testing", "test tickets with a long description.");
-  // Ticket test2 = *
-  newTicket("test chain", "test tickets adding an addtional ticket, with a long description.");
-  // Ticket test3 = *
-  newTicket("test chain", "make decision about managing tickets as files, or by writing driver code in go and manage in memory");
-  Ticket test4 = *
-  newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
+  Ticket test1 = *newTicket("testing", "test tickets with a long description.");
+  Ticket test2 = *newTicket("test chain", "test tickets adding an addtional ticket, with a long description.");
+  Ticket test3 = *newTicket("test chain", "make decision about managing tickets as files, or by writing driver code in go and manage in memory");
+  Ticket test4 = *newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
 
-  // addTicket(unassigned, &test1);
-  // addTicket(unassigned, &test2);
-  // addTicket(unassigned, &test3);
-  // addTicket(unassigned, &test4);
+  addTicket(unassigned, &test1);
+  addTicket(unassigned, &test2);
+  addTicket(unassigned, &test3);
+  addTicket(unassigned, &test4);
 
   for(int i = 0; i < 4; i++) {
     drawMenu(menu[i], title[i]);
+    keypad(menu[i], TRUE);
     // wgetch(menu[i]);
   }
 
   drawList(unassigned);
-  removeTicket(unassigned,test4.id);
-  wclear(menu[unassigned]);
-  drawMenu(menu[unassigned], title[unassigned]);
-  drawList(unassigned);
-  wrefresh(menu[unassigned]);
   wgetch(menu[unassigned]);
+  
+  Ticket *selection = &test4;
+  selectTicket(selection);
+  int key = 0;
+  Ticket *i;
+  while (key != 'q'){
+    key = wgetch(menu[unassigned]);
+    switch(key) {
+      case KEY_DOWN:
+        i = tickets[unassigned];
+        if (selection->next == NULL) break;
+        deselectTicket(selection);
+        while(i->id != selection->id) {i=i->next;}
+        selection = i->next;
+        selectTicket(selection);
+        break;
+      case KEY_UP:
+        i = tickets[unassigned];
+        if (i->id == selection->id) break;
+        deselectTicket(selection);
+        while(i->next->id != selection->id && i->next != NULL) {i=i->next;}
+        selection = i;
+        selectTicket(selection);
+        break;
+      default:
+        break;
+    }
+    wrefresh(menu[unassigned]);
+  }
+
+  // removeTicket(unassigned,test4.id);
+  // wclear(menu[unassigned]);
+  // drawMenu(menu[unassigned], title[unassigned]);
+  // drawList(unassigned);
+  // wrefresh(menu[unassigned]);
+  // wgetch(menu[unassigned]);
   
   // test1.pos = drawTicket(&test1, 4);
   // test2.pos = drawTicket(&test2, test1.pos+1);
@@ -78,6 +106,7 @@ Ticket *newTicket(char *title, char *desc) {
   res->pos = 3;
   res->size = 1;
   res->next = NULL;
+  res->status = none;
   int len = strlen(desc);
 
   int menuWidth = WWIDTH - 6;
@@ -110,7 +139,6 @@ Ticket *newTicket(char *title, char *desc) {
     res->size++;
   } 
 
-  addTicket(unassigned, res);
   return res;
 }
 
@@ -176,16 +204,16 @@ void drawMenu(WINDOW *menu, char* title) {
 }
 
 int drawTicket(Ticket *ticket, int line){
-  Ticket t = *ticket;
+  WINDOW *win = menu[ticket->status];
   int y = line;
   int menuWidth = WWIDTH - 6;
-  int len = strlen(t.description);
-  char* head = t.description;
+  int len = strlen(ticket->description);
+  char* head = ticket->description;
 
-  wmove(menu[t.status],y,2);
-  waddstr(menu[t.status],t.name);
-  wmove(menu[t.status],++y,2);
-  whline(menu[t.status], ACS_HLINE, WWIDTH - 5);
+  wmove(win,y,2);
+  waddstr(win,ticket->name);
+  wmove(win,++y,2);
+  whline(win, ACS_HLINE, WWIDTH - 5);
 
   int i = 0;
   while (i < len) {
@@ -196,11 +224,11 @@ int drawTicket(Ticket *ticket, int line){
     }
 
     // nextline
-    wmove(menu[t.status],++y,3);
+    wmove(win,++y,3);
 
     // lastline
     if (i + menuWidth > len) {
-      wprintw(menu[t.status],"%.*s", menuWidth, head + i);
+      wprintw(win,"%.*s", menuWidth, head + i);
       break;
     }
 
@@ -213,16 +241,14 @@ int drawTicket(Ticket *ticket, int line){
         }
       }
 
-      wprintw(menu[t.status],"%.*s", indexOf, head + i);
+      wprintw(win,"%.*s", indexOf, head + i);
       i += indexOf;
     } else {
-      wprintw(menu[t.status],"%.*s", menuWidth, head + i);
+      wprintw(win,"%.*s", menuWidth, head + i);
       i += menuWidth;
     }
   }
 
-  wrefresh(menu[t.status]);
-  wgetch(menu[t.status]);
   return y + 2;
 }
 
@@ -256,9 +282,6 @@ void selectTicket(Ticket *ticket) {
   waddch(win, ACS_LRCORNER);
 
   wattrset(win, A_NORMAL);
-
-  wrefresh(win);
-  wgetch(win);
 }
 
 void deselectTicket(Ticket *ticket) {
@@ -285,10 +308,6 @@ void deselectTicket(Ticket *ticket) {
   whline(win, ' ', WWIDTH - 4);
   wmove(win, y+size+2, WWIDTH - 2);
   waddch(win, ' ');
-
-  wrefresh(win);
-  wgetch(win);
-
 }
 
 void clearTicketDesc(Ticket *ticket) {

@@ -20,6 +20,7 @@ WINDOW *newMenu(int x);
 Ticket *newTicket(char *title, char *desc);
 void drawMenu(WINDOW *menu, char *title);
 void drawList(Windows status);
+
 void addTicket(Windows status, Ticket *);
 Ticket *removeTicket(Windows status, int id);
 int drawTicket(Ticket *, int lineNumber);

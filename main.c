@@ -7,9 +7,12 @@ int main() {
 }
 #endif
 
-WINDOW *menu[4]; 
+WINDOW *menus[4]; 
 Ticket *tickets[4];
 int nextId = 0;
+Selecting level = ticket;
+Ticket *ticketSelection;
+int menuSelection = 0;
 
 void run(){
   initscr();
@@ -20,9 +23,11 @@ void run(){
   refresh();
   getch();
 
+  noecho();
+
   char* title[4] = {"Unassigned", "In Progress", "Blocked", "Completed"};
 
-  for(int i = 0; i < 4; i++) menu[i] = newMenu(i*WWIDTH);
+  for(int i = 0; i < 4; i++) menus[i] = newMenu(i*WWIDTH);
 
   Ticket test1 = *newTicket("testing", "test tickets with a long description.");
   Ticket test2 = *newTicket("test chain", "test tickets adding an addtional ticket, with a long description.");
@@ -34,60 +39,77 @@ void run(){
   addTicket(unassigned, &test3);
   addTicket(unassigned, &test4);
 
+  Ticket test5 = *newTicket("testing", "test tickets with a long description.");
+  Ticket test6 = *newTicket("test chain", "test tickets adding an addtional ticket, with a long description.");
+  Ticket test7 = *newTicket("test chain", "make decision about managing tickets as files, or by writing driver code in go and manage in memory");
+  Ticket test8 = *newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
+
+  addTicket(inprogress, &test5);
+  addTicket(inprogress, &test6);
+  addTicket(blocked, &test7);
+  addTicket(completed, &test8);
+
   for(int i = 0; i < 4; i++) {
-    drawMenu(menu[i], title[i]);
-    keypad(menu[i], TRUE);
-    // wgetch(menu[i]);
+    drawMenu(menus[i], title[i]);
+    keypad(menus[i], TRUE);
+    drawList(i);
+    wrefresh(menus[i]);
   }
 
-  drawList(unassigned);
-  wgetch(menu[unassigned]);
+  ticketSelection = &test1;
+  wgetch(menus[unassigned]);
   
-  Ticket *selection = &test4;
-  selectTicket(selection);
+  illuminateTicket(ticketSelection);
   int key = 0;
-  Ticket *i;
   while (key != 'q'){
-    key = wgetch(menu[unassigned]);
-    switch(key) {
-      case KEY_DOWN:
-        i = tickets[unassigned];
-        if (selection->next == NULL) break;
-        deselectTicket(selection);
-        while(i->id != selection->id) {i=i->next;}
-        selection = i->next;
-        selectTicket(selection);
+    key = wgetch(menus[menuSelection]);
+
+    switch (key) {
+      case 10: // enter
+        if (level != ticket) {
+          level = ticket;
+          ticketSelection = tickets[menuSelection];
+          dimMenu(menuSelection);
+          illuminateTicket(ticketSelection);
+        }
         break;
-      case KEY_UP:
-        i = tickets[unassigned];
-        if (i->id == selection->id) break;
-        deselectTicket(selection);
-        while(i->next->id != selection->id && i->next != NULL) {i=i->next;}
-        selection = i;
-        selectTicket(selection);
+
+      case 27: // esc
+        if (level != menu) {
+          level = menu;
+          dimTicket(ticketSelection);
+          illuminateMenu(menuSelection);
+        }
         break;
+
       default:
+        if (level == menu) 
+          selectMenu(key);
+        else if (level == ticket) 
+          selectTicket(key);
+
         break;
+
     }
-    wrefresh(menu[unassigned]);
+
   }
 
   // removeTicket(unassigned,test4.id);
-  // wclear(menu[unassigned]);
-  // drawMenu(menu[unassigned], title[unassigned]);
+  // wclear(menus[unassigned]);
+  // drawMenu(menus[unassigned], title[unassigned]);
   // drawList(unassigned);
-  // wrefresh(menu[unassigned]);
-  // wgetch(menu[unassigned]);
+  // wrefresh(menus[unassigned]);
+  // wgetch(menus[unassigned]);
   
   // test1.pos = drawTicket(&test1, 4);
   // test2.pos = drawTicket(&test2, test1.pos+1);
   // test3.pos = drawTicket(&test3, 4);
   // drawTicket(&test4, test3.pos+1);
 
-  // selectTicket(&test3);
-  // deselectTicket(&test3);
-  // selectTicket(&test1);
-  // selectTicket(&test2);
+  //illuminateTicket(&test3);
+  //dimTicket(&test3);
+  //illuminateTicket(&test1);
+  //illuminateTicket(&test2);
 
   endwin();
 }
@@ -204,7 +226,7 @@ void drawMenu(WINDOW *menu, char* title) {
 }
 
 int drawTicket(Ticket *ticket, int line){
-  WINDOW *win = menu[ticket->status];
+  WINDOW *win = menus[ticket->status];
   int y = line;
   int menuWidth = WWIDTH - 6;
   int len = strlen(ticket->description);
@@ -252,8 +274,67 @@ int drawTicket(Ticket *ticket, int line){
   return y + 2;
 }
 
-void selectTicket(Ticket *ticket) {
-  WINDOW *win = menu[ticket->status];
+void selectTicket(int key) {
+  Ticket *i;
+  switch(key) {
+    case KEY_DOWN:
+      i = tickets[menuSelection];
+      if (ticketSelection->next == NULL) break;
+      dimTicket(ticketSelection);
+      while(i->id != ticketSelection->id) {i=i->next;}
+      ticketSelection = i->next;
+      illuminateTicket(ticketSelection);
+      break;
+    case KEY_UP:
+      i = tickets[menuSelection];
+      if (i->id == ticketSelection->id) break;
+      dimTicket(ticketSelection);
+      while(i->next->id != ticketSelection->id && i->next != NULL) {i=i->next;}
+      ticketSelection = i;
+      illuminateTicket(ticketSelection);
+      break;
+    default:
+      break;
+  }
+}
+
+void selectMenu(int key) {
+  switch(key) {
+    case KEY_RIGHT:
+      dimMenu(menuSelection);
+      if(menuSelection < 3) menuSelection++; 
+      illuminateMenu(menuSelection);
+      break;
+    case KEY_LEFT:
+      dimMenu(menuSelection);
+      if(menuSelection > 0) menuSelection--;
+      illuminateMenu(menuSelection);
+      break;
+    default:
+      break;
+  }
+
+}
+
+void illuminateMenu(int status) {
+  WINDOW*win = menus[status];
+  use_default_colors();
+  start_color();
+  init_pair(1,COLOR_GREEN,-1);
+  wattrset(win, COLOR_PAIR(1));
+  box(win, 0, 0);
+  wattrset(win, A_NORMAL);
+  wrefresh(menus[status]);
+}
+
+void dimMenu(int status) {
+  WINDOW *win = menus[status];
+  box(win, 0, 0);
+  wrefresh(menus[status]);
+}
+
+void illuminateTicket(Ticket *ticket) {
+  WINDOW *win = menus[ticket->status];
   int size = ticket->size;
   int y = ticket->pos-size-4;
   use_default_colors();
@@ -284,8 +365,8 @@ void selectTicket(Ticket *ticket) {
   wattrset(win, A_NORMAL);
 }
 
-void deselectTicket(Ticket *ticket) {
-  WINDOW *win = menu[ticket->status]; 
+void dimTicket(Ticket *ticket) {
+  WINDOW *win = menus[ticket->status]; 
   int size = ticket->size;
   int y = ticket->pos-size-4;
 
@@ -311,7 +392,7 @@ void deselectTicket(Ticket *ticket) {
 }
 
 void clearTicketDesc(Ticket *ticket) {
-  WINDOW *win = menu[ticket->status];  
+  WINDOW *win = menus[ticket->status];  
   int y = ticket->pos-ticket->size-2;
   for(int i=0; i < ticket->size; i++) {
     wmove(win,++y,2);

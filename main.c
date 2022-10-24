@@ -289,9 +289,28 @@ void selectTicket(int key) {
       i = tickets[menuSelection];
       if (i->id == ticketSelection->id) break;
       dimTicket(ticketSelection);
-      while(i->next->id != ticketSelection->id && i->next != NULL) {i=i->next;}
+      while(i->next->id != ticketSelection->id && i->next != NULL) i=i->next;
       ticketSelection = i;
       illuminateTicket(ticketSelection);
+      break;
+    case KEY_RIGHT:
+      if (menuSelection < 3) {
+        i = tickets[++menuSelection];
+        dimTicket(ticketSelection); 
+        while(i->pos < ticketSelection->pos && i->next != NULL) i = i->next;
+        ticketSelection = i;
+        illuminateTicket(ticketSelection);
+      }
+      break;
+    case KEY_LEFT:
+      if (menuSelection > 0) {
+        i = tickets[--menuSelection];
+        dimTicket(ticketSelection); 
+        int top = ticketSelection->pos - ticketSelection->size;
+        while(i->pos-i->size < top && i->next != NULL) i = i->next;
+        ticketSelection = i;
+        illuminateTicket(ticketSelection);
+      }
       break;
     default:
       break;
@@ -313,7 +332,6 @@ void selectMenu(int key) {
     default:
       break;
   }
-
 }
 
 void illuminateMenu(int status) {
@@ -363,6 +381,7 @@ void illuminateTicket(Ticket *ticket) {
   waddch(win, ACS_LRCORNER);
 
   wattrset(win, A_NORMAL);
+  wrefresh(win);
 }
 
 void dimTicket(Ticket *ticket) {
@@ -389,6 +408,7 @@ void dimTicket(Ticket *ticket) {
   whline(win, ' ', WWIDTH - 4);
   wmove(win, y+size+2, WWIDTH - 2);
   waddch(win, ' ');
+  wrefresh(win);
 }
 
 void clearTicketDesc(Ticket *ticket) {

@@ -13,6 +13,9 @@ int nextId = 0;
 Selecting level = ticket;
 Ticket *ticketSelection;
 int menuSelection = 0;
+int scrollPosition[4];
+
+char* title[4] = {"Unassigned", "In Progress", "Blocked", "Completed"};
 
 void run(){
   initscr();
@@ -26,8 +29,6 @@ void run(){
   getch();
 
   noecho();
-
-  char* title[4] = {"Unassigned", "In Progress", "Blocked", "Completed"};
 
   for(int i = 0; i < 4; i++) menus[i] = newMenu(i*WWIDTH);
 
@@ -60,6 +61,7 @@ void run(){
   for(int i = 0; i < 4; i++) {
     drawMenu(menus[i], title[i]);
     keypad(menus[i], TRUE);
+    scrollPosition[i] = 0;
     drawList(i);
     wrefresh(menus[i]);
   }
@@ -122,18 +124,94 @@ void run(){
   endwin();
 }
 
+void selectTicket(int key) {
+  Ticket *i;
+  switch(key) {
+    case KEY_DOWN:
+      i = tickets[menuSelection];
+      if (ticketSelection->next == NULL) break;
+
+      while(i->id != ticketSelection->id) i=i->next;
+      if (i->next->pos >= LINES || i->next->pos == 3) {
+        scrollPosition[menuSelection]++;
+        wclear(menus[menuSelection]);
+        drawMenu(menus[menuSelection], title[menuSelection]);
+        drawList(menuSelection);
+      } 
+
+      dimTicket(ticketSelection);
+      ticketSelection = i->next;
+      illuminateTicket(ticketSelection);
+      break;
+    case KEY_UP:
+      i = tickets[menuSelection];
+      if (i->id == ticketSelection->id) break;
+
+      while(i->next->id != ticketSelection->id && i->next != NULL) i=i->next;
+      if (i->pos == -1 ) {
+        scrollPosition[menuSelection]--;
+        wclear(menus[menuSelection]);
+        drawMenu(menus[menuSelection], title[menuSelection]);
+        drawList(menuSelection);
+      } 
+
+      dimTicket(ticketSelection);
+      ticketSelection = i;
+      illuminateTicket(ticketSelection);
+      break;
+    case KEY_RIGHT:
+      if (menuSelection < 3) {
+        i = tickets[++menuSelection];
+        dimTicket(ticketSelection); 
+        while(i->pos < ticketSelection->pos && i->next != NULL) i = i->next;
+        ticketSelection = i;
+        illuminateTicket(ticketSelection);
+      }
+      break;
+    case KEY_LEFT:
+      if (menuSelection > 0) {
+        i = tickets[--menuSelection];
+        dimTicket(ticketSelection); 
+        int top = ticketSelection->pos - ticketSelection->size;
+        while(i->pos-i->size < top && i->next != NULL) i = i->next;
+        ticketSelection = i;
+        illuminateTicket(ticketSelection);
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+void selectMenu(int key) {
+  switch(key) {
+    case KEY_RIGHT:
+      dimMenu(menuSelection);
+      if(menuSelection < 3) menuSelection++; 
+      illuminateMenu(menuSelection);
+      break;
+    case KEY_LEFT:
+      dimMenu(menuSelection);
+      if(menuSelection > 0) menuSelection--;
+      illuminateMenu(menuSelection);
+      break;
+    default:
+      break;
+  }
+}
+
 WINDOW *newMenu(int x){
   return newwin(LINES,WWIDTH,0,x);
 }
 
-int newId() { return ++nextId;}
+int newId() { return ++nextId; }
 
 Ticket *newTicket(char *title, char *desc) {
   Ticket* res = malloc(sizeof(Ticket));
   res->id = newId();
   res->name = title;
   res->description = desc;
-  res->pos = 3;
+  res->pos = LINES + 1;
   res->size = 1;
   res->next = NULL;
   res->status = none;
@@ -175,11 +253,18 @@ Ticket *newTicket(char *title, char *desc) {
 void drawList(Windows status) {
   int y = 4;
   Ticket *i = tickets[status];
+  for(int k = scrollPosition[status]; k > 0; k--) {
+    i->pos = -1;
+    if(i->next != NULL) i = i->next;
+  }
+  
   while(i != NULL && y < LINES - 1) {
     i->pos = drawTicket(i, y);
     y = i->pos + 1;
     i=i->next;
   }
+
+  for (;i != NULL; i=i->next) i->pos = LINES + 1;
 }
 
 void addTicket(Windows status, Ticket *ticket) {
@@ -280,69 +365,6 @@ int drawTicket(Ticket *ticket, int line){
   }
 
   return y + 2;
-}
-
-void selectTicket(int key) {
-  Ticket *i;
-  switch(key) {
-    case KEY_DOWN:
-      i = tickets[menuSelection];
-      if (ticketSelection->next == NULL) break;
-
-      while(i->id != ticketSelection->id) i=i->next;
-      if (i->next->pos > LINES) break;
-
-      dimTicket(ticketSelection);
-      ticketSelection = i->next;
-      illuminateTicket(ticketSelection);
-      break;
-    case KEY_UP:
-      i = tickets[menuSelection];
-      if (i->id == ticketSelection->id) break;
-      dimTicket(ticketSelection);
-      while(i->next->id != ticketSelection->id && i->next != NULL) i=i->next;
-      ticketSelection = i;
-      illuminateTicket(ticketSelection);
-      break;
-    case KEY_RIGHT:
-      if (menuSelection < 3) {
-        i = tickets[++menuSelection];
-        dimTicket(ticketSelection); 
-        while(i->pos < ticketSelection->pos && i->next != NULL) i = i->next;
-        ticketSelection = i;
-        illuminateTicket(ticketSelection);
-      }
-      break;
-    case KEY_LEFT:
-      if (menuSelection > 0) {
-        i = tickets[--menuSelection];
-        dimTicket(ticketSelection); 
-        int top = ticketSelection->pos - ticketSelection->size;
-        while(i->pos-i->size < top && i->next != NULL) i = i->next;
-        ticketSelection = i;
-        illuminateTicket(ticketSelection);
-      }
-      break;
-    default:
-      break;
-  }
-}
-
-void selectMenu(int key) {
-  switch(key) {
-    case KEY_RIGHT:
-      dimMenu(menuSelection);
-      if(menuSelection < 3) menuSelection++; 
-      illuminateMenu(menuSelection);
-      break;
-    case KEY_LEFT:
-      dimMenu(menuSelection);
-      if(menuSelection > 0) menuSelection--;
-      illuminateMenu(menuSelection);
-      break;
-    default:
-      break;
-  }
 }
 
 void illuminateMenu(int status) {

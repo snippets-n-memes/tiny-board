@@ -20,6 +20,8 @@ void run(){
   addstr("This is the standard screen\n");
   move(1,0);
   printw("WWIDTH = %d", WWIDTH);
+  move(2,0);
+  printw("LINES = %d", LINES);
   refresh();
   getch();
 
@@ -33,10 +35,16 @@ void run(){
   Ticket test2 = *newTicket("test chain", "test tickets adding an addtional ticket, with a long description.");
   Ticket test3 = *newTicket("test chain", "make decision about managing tickets as files, or by writing driver code in go and manage in memory");
   Ticket test4 = *newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
+  Ticket test13 = *newTicket("test chain", "make decision about managing tickets as files, or by writing driver code in go and manage in memory");
+  Ticket test14 = *newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
+  Ticket test15 = *newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
 
   addTicket(unassigned, &test1);
   addTicket(unassigned, &test2);
   addTicket(unassigned, &test3);
+  addTicket(unassigned, &test13);
+  addTicket(unassigned, &test14);
+  addTicket(unassigned, &test15);
   addTicket(unassigned, &test4);
 
   Ticket test5 = *newTicket("testing", "test tickets with a long description.");
@@ -167,7 +175,7 @@ Ticket *newTicket(char *title, char *desc) {
 void drawList(Windows status) {
   int y = 4;
   Ticket *i = tickets[status];
-  while(i != NULL) {
+  while(i != NULL && y < LINES - 1) {
     i->pos = drawTicket(i, y);
     y = i->pos + 1;
     i=i->next;
@@ -238,7 +246,7 @@ int drawTicket(Ticket *ticket, int line){
   whline(win, ACS_HLINE, WWIDTH - 5);
 
   int i = 0;
-  while (i < len) {
+  while (i < len && y < (LINES-1)) {
     // trim leading whitespace
     if ((head + i)[0] == ' ') {
       i++;
@@ -280,8 +288,11 @@ void selectTicket(int key) {
     case KEY_DOWN:
       i = tickets[menuSelection];
       if (ticketSelection->next == NULL) break;
+
+      while(i->id != ticketSelection->id) i=i->next;
+      if (i->next->pos > LINES) break;
+
       dimTicket(ticketSelection);
-      while(i->id != ticketSelection->id) {i=i->next;}
       ticketSelection = i->next;
       illuminateTicket(ticketSelection);
       break;

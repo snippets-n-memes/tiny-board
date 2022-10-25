@@ -20,6 +20,10 @@ char* title[4] = {"Unassigned", "In Progress", "Blocked", "Completed"};
 void run(){
   initscr();
   curs_set(0);
+  refresh();
+  noecho();
+
+#ifdef DEBUG_WINDOW
   addstr("This is the standard screen\n");
   move(1,0);
   printw("WWIDTH = %d", WWIDTH);
@@ -27,36 +31,11 @@ void run(){
   printw("LINES = %d", LINES);
   refresh();
   getch();
-
-  noecho();
+#endif
 
   for(int i = 0; i < 4; i++) menus[i] = newMenu(i*WWIDTH);
 
-  Ticket test1 = *newTicket("testing", "test tickets with a long description.");
-  Ticket test2 = *newTicket("test chain", "test tickets adding an addtional ticket, with a long description.");
-  Ticket test3 = *newTicket("test chain", "make decision about managing tickets as files, or by writing driver code in go and manage in memory");
-  Ticket test4 = *newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
-  Ticket test13 = *newTicket("test chain", "make decision about managing tickets as files, or by writing driver code in go and manage in memory");
-  Ticket test14 = *newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
-  Ticket test15 = *newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
-
-  addTicket(unassigned, &test1);
-  addTicket(unassigned, &test2);
-  addTicket(unassigned, &test3);
-  addTicket(unassigned, &test13);
-  addTicket(unassigned, &test14);
-  addTicket(unassigned, &test15);
-  addTicket(unassigned, &test4);
-
-  Ticket test5 = *newTicket("testing", "test tickets with a long description.");
-  Ticket test6 = *newTicket("test chain", "test tickets adding an addtional ticket, with a long description.");
-  Ticket test7 = *newTicket("test chain", "make decision about managing tickets as files, or by writing driver code in go and manage in memory");
-  Ticket test8 = *newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
-
-  addTicket(inprogress, &test5);
-  addTicket(inprogress, &test6);
-  addTicket(blocked, &test7);
-  addTicket(completed, &test8);
+  // generateTickets();
 
   for(int i = 0; i < 4; i++) {
     drawMenu(menus[i], title[i]);
@@ -66,10 +45,13 @@ void run(){
     wrefresh(menus[i]);
   }
 
-  ticketSelection = &test1;
-  wgetch(menus[unassigned]);
+
+  if (tickets[unassigned] != NULL) {
+    ticketSelection = tickets[unassigned];
+    illuminateTicket(ticketSelection);
+  }
+  // wgetch(menus[unassigned]);
   
-  illuminateTicket(ticketSelection);
   int key = 0;
   while (key != 'q'){
     key = wgetch(menus[menuSelection]);
@@ -80,14 +62,14 @@ void run(){
           level = ticket;
           ticketSelection = tickets[menuSelection];
           dimMenu(menuSelection);
-          illuminateTicket(ticketSelection);
+          if (ticketSelection != NULL) illuminateTicket(ticketSelection);
         }
         break;
 
       case 27: // esc
         if (level != menu) {
           level = menu;
-          dimTicket(ticketSelection);
+          if (ticketSelection != NULL) dimTicket(ticketSelection);
           illuminateMenu(menuSelection);
         }
         break;
@@ -97,7 +79,6 @@ void run(){
           selectMenu(key);
         else if (level == ticket) 
           selectTicket(key);
-
         break;
 
     }
@@ -124,14 +105,44 @@ void run(){
   endwin();
 }
 
+void generateTickets() {
+  Ticket *test1 = newTicket("testing", "test tickets with a long description.");
+  Ticket *test2 = newTicket("test chain", "test tickets adding an addtional ticket, with a long description.");
+  Ticket *test3 = newTicket("test chain", "make decision about managing tickets as files, or by writing driver code in go and manage in memory");
+  Ticket *test4 = newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
+  Ticket *test13 = newTicket("test chain", "make decision about managing tickets as files, or by writing driver code in go and manage in memory");
+  Ticket *test14 = newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
+  Ticket *test15 = newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
+
+  addTicket(unassigned, test1);
+  addTicket(unassigned, test2);
+  addTicket(unassigned, test3);
+  addTicket(unassigned, test13);
+  addTicket(unassigned, test14);
+  addTicket(unassigned, test15);
+  addTicket(unassigned, test4);
+
+  Ticket *test5 = newTicket("testing", "test tickets with a long description.");
+  Ticket *test6 = newTicket("test chain", "test tickets adding an addtional ticket, with a long description.");
+  Ticket *test7 = newTicket("test chain", "make decision about managing tickets as files, or by writing driver code in go and manage in memory");
+  Ticket *test8 = newTicket("check spacing", "make sure there's not too much room between two tickets in the same menu");
+
+  addTicket(inprogress, test5);
+  addTicket(inprogress, test6);
+  addTicket(blocked, test7);
+  addTicket(completed, test8);
+}
+
 void selectTicket(int key) {
+  if (tickets[menuSelection] == NULL) return;
+  if (ticketSelection->next == NULL) return;
   Ticket *i;
+
   switch(key) {
     case KEY_DOWN:
       i = tickets[menuSelection];
-      if (ticketSelection->next == NULL) break;
-
       while(i->id != ticketSelection->id) i=i->next;
+
       if (i->next->pos >= LINES || i->next->pos == 3) {
         scrollPosition[menuSelection]++;
         wclear(menus[menuSelection]);

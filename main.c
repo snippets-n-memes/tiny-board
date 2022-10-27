@@ -1,23 +1,26 @@
 #include "main.h"
 
-#ifdef CTEST
-int main() {
-  run();
-  return(0);
-}
-#endif
-
 WINDOW *menus[4]; 
 Ticket *tickets[4];
-int nextId = 0;
-Selecting level = ticket;
 Ticket *ticketSelection;
+Selecting level = ticket;
+
+int key = 0;
+int nextId = 0;
 int menuSelection = 0;
 int scrollPosition[4];
 
 char* title[4] = {"Unassigned", "In Progress", "Blocked", "Completed"};
 
-void run(){
+#ifdef CTEST
+int main() {
+  initializeBoard();
+  while(run());
+  return 0;
+}
+#endif
+
+void initializeBoard() {
   initscr();
   curs_set(0);
   refresh();
@@ -35,7 +38,7 @@ void run(){
 
   for(int i = 0; i < 4; i++) menus[i] = newMenu(i*WWIDTH);
 
-  // generateTickets();
+  generateTickets();
 
   for(int i = 0; i < 4; i++) {
     drawMenu(menus[i], title[i]);
@@ -45,64 +48,44 @@ void run(){
     wrefresh(menus[i]);
   }
 
-
   if (tickets[unassigned] != NULL) {
     ticketSelection = tickets[unassigned];
     illuminateTicket(ticketSelection);
   }
-  // wgetch(menus[unassigned]);
-  
-  int key = 0;
-  while (key != 'q'){
-    key = wgetch(menus[menuSelection]);
+}
 
-    switch (key) {
-      case 10: // enter
-        if (level != ticket) {
-          level = ticket;
-          ticketSelection = tickets[menuSelection];
-          dimMenu(menuSelection);
-          if (ticketSelection != NULL) illuminateTicket(ticketSelection);
-        }
-        break;
+// idea: return the board as a list of tickets for golang to unmarshall 
+int run() {
+  key = wgetch(menus[menuSelection]);
 
-      case 27: // esc
-        if (level != menu) {
-          level = menu;
-          if (ticketSelection != NULL) dimTicket(ticketSelection);
-          illuminateMenu(menuSelection);
-        }
-        break;
-
-      default:
-        if (level == menu) 
-          selectMenu(key);
-        else if (level == ticket) 
-          selectTicket(key);
-        break;
-
-    }
-
+  switch (key) {
+    case 'q':
+    case 'Q':
+      endwin();
+      return 0;
+    case 10: // enter
+      if (level != ticket) {
+        level = ticket;
+        ticketSelection = tickets[menuSelection];
+        dimMenu(menuSelection);
+        if (ticketSelection != NULL) illuminateTicket(ticketSelection);
+      }
+      break;
+    case 27: // esc
+      if (level != menu) {
+        level = menu;
+        if (ticketSelection != NULL) dimTicket(ticketSelection);
+        illuminateMenu(menuSelection);
+      }
+      break;
+    default:
+      if (level == menu) 
+        selectMenu(key);
+      else if (level == ticket) 
+        selectTicket(key);
+      break;
   }
-
-  // removeTicket(unassigned,test4.id);
-  // wclear(menus[unassigned]);
-  // drawMenu(menus[unassigned], title[unassigned]);
-  // drawList(unassigned);
-  // wrefresh(menus[unassigned]);
-  // wgetch(menus[unassigned]);
-  
-  // test1.pos = drawTicket(&test1, 4);
-  // test2.pos = drawTicket(&test2, test1.pos+1);
-  // test3.pos = drawTicket(&test3, 4);
-  // drawTicket(&test4, test3.pos+1);
-
-  //illuminateTicket(&test3);
-  //dimTicket(&test3);
-  //illuminateTicket(&test1);
-  //illuminateTicket(&test2);
-
-  endwin();
+  return 1;
 }
 
 void generateTickets() {
@@ -135,12 +118,13 @@ void generateTickets() {
 
 void selectTicket(int key) {
   if (tickets[menuSelection] == NULL) return;
-  if (ticketSelection->next == NULL) return;
+
   Ticket *i;
 
   switch(key) {
     case KEY_DOWN:
       i = tickets[menuSelection];
+      if (ticketSelection->next == NULL) return;
       while(i->id != ticketSelection->id) i=i->next;
 
       if (i->next->pos >= LINES || i->next->pos == 3) {

@@ -18,8 +18,8 @@ typedef struct Ticket{
 } Ticket;
 
 void generateTickets();
-
-void run();
+void initializeBoard();
+int run();
 WINDOW *newMenu(int x);
 Ticket *newTicket(char *title, char *desc);
 void drawMenu(WINDOW *menu, char *title);

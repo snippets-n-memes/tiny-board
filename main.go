@@ -7,5 +7,8 @@ package main
 import "C"
 
 func main() {
-	C.run()
+	C.initializeBoard();
+	for C.run() == 1 {
+
+	}
 }

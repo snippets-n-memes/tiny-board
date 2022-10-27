@@ -17,20 +17,22 @@ typedef struct Ticket{
   Windows status;
 } Ticket;
 
+int run();
 void generateTickets();
 void initializeBoard();
-int run();
+void newTicketPrompt();
+
 WINDOW *newMenu(int x);
-Ticket *newTicket(char *title, char *desc);
+void selectMenu(int key);
 void drawMenu(WINDOW *menu, char *title);
 void drawList(Windows status);
 void illuminateMenu(int status);
 void dimMenu(int status);
-void selectMenu(int key);
 
+Ticket *newTicket(char *title, char *desc);
+Ticket *removeTicket(Windows status, int id);
 void selectTicket(int key);
 void addTicket(Windows status, Ticket *);
-Ticket *removeTicket(Windows status, int id);
 int drawTicket(Ticket *, int lineNumber);
 void illuminateTicket(Ticket *);
 void dimTicket(Ticket *);

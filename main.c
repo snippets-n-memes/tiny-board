@@ -38,7 +38,9 @@ void initializeBoard() {
 
   for(int i = 0; i < 4; i++) menus[i] = newMenu(i*WWIDTH);
 
+#ifdef CTEST
   generateTickets();
+#endif
 
   for(int i = 0; i < 4; i++) {
     drawMenu(menus[i], title[i]);
@@ -63,6 +65,9 @@ int run() {
     case 'Q':
       endwin();
       return 0;
+    case 'n':
+      newTicketPrompt();
+      break;
     case 10: // enter
       if (level != ticket) {
         level = ticket;
@@ -86,6 +91,50 @@ int run() {
       break;
   }
   return 1;
+}
+
+void newTicketPrompt(){
+  WINDOW *border = newwin(LINES/2,(COLS/2)+4,LINES/4,(COLS/4)-2);
+  box(border,0,0);
+  wrefresh(border);
+  WINDOW *prompt = newwin((LINES/2)-4,(COLS/2),(LINES/4)+2,(COLS/4));
+  wmove(prompt,0,1);
+  wprintw(prompt,"Ticket Name: ");
+  wrefresh(prompt);
+  curs_set(1);
+  keypad(prompt, TRUE);
+  int i = 0, x = 0, y = 0;
+  while(i != 10){
+    i = wgetch(prompt);
+    getyx(prompt, y, x);
+    switch (i){
+      case 127:
+      case '\b':
+      case KEY_BACKSPACE:
+        if (y == 0 && x == 14) break;
+        if (y > 0 && x == 0) {
+          wmove(prompt, y - 1, (COLS/2)-1);
+        } else {
+          wmove(prompt, y, x-1);
+        }
+        wdelch(prompt);
+        break;
+      case KEY_RIGHT:
+        if (x < (COLS/2) - 1) wmove(prompt, y, x + 1);
+        else if (x == 0 && y > 0) wmove(prompt, y + 1, 0);
+        break;
+      case KEY_LEFT:
+        if (x > 0) wmove(prompt, y, x - 1);
+        else if (x == (COLS/2) - 1 && y > 0) wmove(prompt, y - 1, 0);
+        break;
+      default:
+        waddch(prompt, i);
+        break;
+    }
+  }
+
+  curs_set(0);
+  wrefresh(prompt);
 }
 
 void generateTickets() {

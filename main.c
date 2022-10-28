@@ -113,9 +113,9 @@ void newTicketPrompt(){
       case KEY_BACKSPACE:
         if (y == 0 && x == 14) break;
         if (y > 0 && x == 0) {
-          wmove(prompt, y - 1, (COLS/2)-1);
+          wmove(prompt, y - 1, (COLS/2) - 1);
         } else {
-          wmove(prompt, y, x-1);
+          wmove(prompt, y, x - 1);
         }
         wdelch(prompt);
         break;
@@ -126,6 +126,13 @@ void newTicketPrompt(){
       case KEY_LEFT:
         if (x > 0) wmove(prompt, y, x - 1);
         else if (x == (COLS/2) - 1 && y > 0) wmove(prompt, y - 1, 0);
+        break;
+      case KEY_UP:
+        if (y == 1 && x < 14) wmove(prompt, y-1, 14); 
+        else if (y > 0) wmove(prompt, y-1, x);
+        break;
+      case KEY_DOWN:
+        if ( y < (LINES/2)-4) wmove(prompt, y+1, x);
         break;
       default:
         waddch(prompt, i);

@@ -94,6 +94,7 @@ int run() {
 }
 
 void newTicketPrompt(){
+  int width = (COLS/2) - 1;
   WINDOW *border = newwin(LINES/2,(COLS/2)+4,LINES/4,(COLS/4)-2);
   box(border,0,0);
   wrefresh(border);
@@ -103,38 +104,46 @@ void newTicketPrompt(){
   wrefresh(prompt);
   curs_set(1);
   keypad(prompt, TRUE);
-  int i = 0, x = 0, y = 0;
+  int i = 0, x = 0, y = 0, chars = 0, chars2pos = 0;
   while(i != 10){
     i = wgetch(prompt);
     getyx(prompt, y, x);
+    chars2pos = x + (y * width) + y - 13;
     switch (i){
       case 127:
       case '\b':
       case KEY_BACKSPACE:
         if (y == 0 && x == 14) break;
         if (y > 0 && x == 0) {
-          wmove(prompt, y - 1, (COLS/2) - 1);
+          wmove(prompt, y - 1, width); 
         } else {
           wmove(prompt, y, x - 1);
         }
+        chars--;
         wdelch(prompt);
         break;
       case KEY_RIGHT:
-        if (x < (COLS/2) - 1) wmove(prompt, y, x + 1);
-        else if (x == 0 && y > 0) wmove(prompt, y + 1, 0);
+        if (chars2pos > chars) break;
+        if (x < width) wmove(prompt, y, x + 1);
+        else if (x == width && chars2pos < chars) wmove(prompt, y + 1, 0);
         break;
       case KEY_LEFT:
+        if (y == 0 && x == 14) break;
         if (x > 0) wmove(prompt, y, x - 1);
-        else if (x == (COLS/2) - 1 && y > 0) wmove(prompt, y - 1, 0);
+        else if (x == 0 && y > 0) wmove(prompt, y - 1, width);
+        else if (x == width && y > 0) wmove(prompt, y - 1, 0);
         break;
       case KEY_UP:
         if (y == 1 && x < 14) wmove(prompt, y-1, 14); 
         else if (y > 0) wmove(prompt, y-1, x);
         break;
       case KEY_DOWN:
-        if ( y < (LINES/2)-4) wmove(prompt, y+1, x);
+        // if (chars2pos + width >= chars) break;
+        if (chars2pos + width >= chars) wmove(prompt, y+1, width - chars2pos - chars);
+        else if ( y < (LINES/2)-4) wmove(prompt, y+1, x);
         break;
       default:
+        chars++;
         waddch(prompt, i);
         break;
     }

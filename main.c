@@ -106,9 +106,13 @@ void newTicketPrompt(){
   keypad(prompt, TRUE);
   int i = 0, x = 0, y = 0, chars = 0, chars2pos = 0;
   while(i != 10){
-    i = wgetch(prompt);
     getyx(prompt, y, x);
-    chars2pos = x + (y * width) + y - 13;
+    chars2pos = x + (y * width) - 13;
+    mvwprintw(prompt,(LINES/2) - 5,0, "chars2pos: %i chars: %i      ",chars2pos, chars);
+    mvwprintw(prompt,(LINES/2) - 6,0, "y: %i x: %i      ",y,x);
+    wmove(prompt,y,x);
+    wrefresh(prompt);
+    i = wgetch(prompt);
     switch (i){
       case 127:
       case '\b':
@@ -123,7 +127,7 @@ void newTicketPrompt(){
         wdelch(prompt);
         break;
       case KEY_RIGHT:
-        if (chars2pos > chars) break;
+        if (chars2pos >= chars) break;
         if (x < width) wmove(prompt, y, x + 1);
         else if (x == width && chars2pos < chars) wmove(prompt, y + 1, 0);
         break;
@@ -138,8 +142,8 @@ void newTicketPrompt(){
         else if (y > 0) wmove(prompt, y-1, x);
         break;
       case KEY_DOWN:
-        // if (chars2pos + width >= chars) break;
-        if (chars2pos + width >= chars) wmove(prompt, y+1, width - chars2pos - chars);
+        if (y == 0 && chars < width - 14) break;
+        if (chars2pos + width >= chars) wmove(prompt, y+1, chars + 13 - ((y+1)*width));
         else if ( y < (LINES/2)-4) wmove(prompt, y+1, x);
         break;
       default:

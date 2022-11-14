@@ -98,57 +98,75 @@ void newTicketPrompt(){
   WINDOW *border = newwin(LINES/2,(COLS/2)+4,LINES/4,(COLS/4)-2);
   box(border,0,0);
   wrefresh(border);
+
   WINDOW *prompt = newwin((LINES/2)-4,(COLS/2),(LINES/4)+2,(COLS/4));
   wmove(prompt,0,1);
   wprintw(prompt,"Ticket Name: ");
+  wmove(prompt,2,1);
+  wprintw(prompt,"Description: ");
   wrefresh(prompt);
+
+  WINDOW *name = newwin(1, (COLS/2)-17, (LINES/4)+2,(COLS/4)+13);
+  char *nameBuffer = malloc(sizeof(char) * 100);
+  wrefresh(name);
   curs_set(1);
-  keypad(prompt, TRUE);
-  int i = 0, x = 0, y = 0, chars = 0, chars2pos = 0;
+  keypad(name, TRUE);
+  int i = 0, x = 0, y = 0, chars = 0, index = 0;
   while(i != 10){
-    getyx(prompt, y, x);
-    chars2pos = x + (y * (width+1)) - 14;
-    mvwprintw(prompt,(LINES/2) - 5,0, "chars2pos: %i chars: %i      ",chars2pos, chars);
-    mvwprintw(prompt,(LINES/2) - 6,0, "y: %i x: %i      ",y,x);
-    wmove(prompt,y,x);
-    wrefresh(prompt);
-    i = wgetch(prompt);
+    getyx(name, y, x);
+    wrefresh(name);
+    i = wgetch(name);
     switch (i){
       case 127:
       case '\b':
       case KEY_BACKSPACE:
-        if (y == 0 && x == 14) break;
-        if (y > 0 && x == 0) {
-          wmove(prompt, y - 1, width); 
+        if (chars == 0) break;
+        if (index < chars) {
+          nameBuffer[chars] = ' ';
+          memmove(&nameBuffer[index-1], &nameBuffer[index],(chars-index+1)*sizeof(char));
         } else {
-          wmove(prompt, y, x - 1);
-        }
+          nameBuffer[index-1] = ' ';
+        } 
+
         chars--;
-        wdelch(prompt);
+        index--;
+        wmove(name,0,0);
+        waddnstr(name, nameBuffer, (COLS/4)+13);
+        wmove(name,y,x-1);
         break;
       case KEY_RIGHT:
-        if (chars2pos >= chars) break;
-        if (x < width && chars2pos < chars ) wmove(prompt, y, x + 1);
-        else if (x == width && chars2pos < chars) wmove(prompt, y + 1, 0);
+        if (index < chars && chars < 100){
+          index++;
+          wmove(name, y, x + 1);
+        } 
         break;
       case KEY_LEFT:
-        if (y == 0 && x == 14) break;
-        if (x > 0) wmove(prompt, y, x - 1);
-        else if (x == 0 && y > 0) wmove(prompt, y - 1, width);
-        else if (x == width && y > 0) wmove(prompt, y - 1, 0);
+        if (index > 0){
+          index--;
+          wmove(name, y, x - 1);
+        } 
         break;
-      case KEY_UP:
-        if (y == 1 && x < 14) wmove(prompt, y-1, 14); 
-        else if (y > 0) wmove(prompt, y-1, x);
-        break;
-      case KEY_DOWN:
-        if (y == 0 && chars < width - 14) break;
-        if (chars2pos + width >= chars) wmove(prompt, y+1, chars + 14 - ((y+1)*(width+1)));
-        else if ( y < (LINES/2)-4) wmove(prompt, y+1, x);
-        break;
+      // case KEY_UP:
+  //       if (y == 1 && x < 14) wmove(prompt, y-1, 14); 
+  //       else if (y > 0) wmove(prompt, y-1, x);
+  //       break;
+  //     case KEY_DOWN:
+  //       if (y == 0 && chars < width - 14) break;
+  //       if (chars2pos + width >= chars) wmove(prompt, y+1, chars + 14 - ((y+1)*(width+1)));
+  //       else if ( y < (LINES/2)-4) wmove(prompt, y+1, x);
+  //       break;
       default:
-        chars++;
-        waddch(prompt, i);
+        if (index < chars) {
+          memmove(&nameBuffer[index+1], &nameBuffer[index],(chars-index)*sizeof(char));
+        }
+        if (chars < 100) {
+          nameBuffer[index] = i;
+          chars++;
+          index++;
+          wmove(name,0,0);
+          waddnstr(name, nameBuffer, (COLS/4)+13);
+          wmove(name,y,++x);
+        }
         break;
     }
   }

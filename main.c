@@ -141,7 +141,7 @@ void newTicketPrompt(){
         index--;
         wmove(activeWindow,0,0);
         waddnstr(activeWindow, &nameBuffer[offset], (COLS/4)+13);
-        if (offset == 0) wmove(activeWindow,y,x-1);
+        if (chars < nameWidth - 1) wmove(activeWindow,y,x-1);
         break;
       case KEY_RIGHT:
         if (index < chars && chars < 100){

@@ -26,7 +26,7 @@ void initializeBoard() {
   refresh();
   noecho();
 
-#ifdef DEBUG_WINDOW
+#ifdef DEBUG
   addstr("This is the standard screen\n");
   move(1,0);
   printw("WWIDTH = %d", WWIDTH);
@@ -95,6 +95,11 @@ int run() {
 
 void newTicketPrompt(){
   int width = (COLS/2) - 1;
+
+#ifdef DEBUG
+  WINDOW *debug = newwin(6,(COLS/2) + 4,(3*LINES/4),(COLS/4)-2);
+#endif
+
   WINDOW *border = newwin(LINES/2,(COLS/2)+4,LINES/4,(COLS/4)-2);
   box(border,0,0);
   wrefresh(border);
@@ -107,15 +112,18 @@ void newTicketPrompt(){
   wrefresh(prompt);
 
   WINDOW *name = newwin(1, (COLS/2)-17, (LINES/4)+2,(COLS/4)+13);
+  int nameWidth = (COLS/2)-17;
+  WINDOW *activeWindow = name;
   char *nameBuffer = malloc(sizeof(char) * 100);
-  wrefresh(name);
+  wrefresh(activeWindow);
   curs_set(1);
-  keypad(name, TRUE);
-  int i = 0, x = 0, y = 0, chars = 0, index = 0;
+  keypad(activeWindow, TRUE);
+  int i = 0, x = 0, y = 0, chars = 0, index = 0, offset = 0;
   while(i != 10){
-    getyx(name, y, x);
-    wrefresh(name);
-    i = wgetch(name);
+    getyx(activeWindow, y, x);
+    wrefresh(activeWindow);
+    i = wgetch(activeWindow);
+
     switch (i){
       case 127:
       case '\b':
@@ -123,21 +131,26 @@ void newTicketPrompt(){
         if (chars == 0) break;
         if (index < chars) {
           nameBuffer[chars] = ' ';
-          memmove(&nameBuffer[index-1], &nameBuffer[index],(chars-index+1)*sizeof(char));
+          memmove(&nameBuffer[index-1], &nameBuffer[index], (chars-index)*sizeof(char*));
         } else {
           nameBuffer[index-1] = ' ';
         } 
 
+        if (offset > 0) offset--;
         chars--;
         index--;
-        wmove(name,0,0);
-        waddnstr(name, nameBuffer, (COLS/4)+13);
-        wmove(name,y,x-1);
+        wmove(activeWindow,0,0);
+        waddnstr(activeWindow, &nameBuffer[offset], (COLS/4)+13);
+        if (offset == 0) wmove(activeWindow,y,x-1);
         break;
       case KEY_RIGHT:
         if (index < chars && chars < 100){
-          index++;
-          wmove(name, y, x + 1);
+          if(x == nameWidth){
+            offset++;
+          }else{
+            index++;
+            wmove(name, y, x + 1);
+          }
         } 
         break;
       case KEY_LEFT:
@@ -147,28 +160,46 @@ void newTicketPrompt(){
         } 
         break;
       // case KEY_UP:
-  //       if (y == 1 && x < 14) wmove(prompt, y-1, 14); 
-  //       else if (y > 0) wmove(prompt, y-1, x);
-  //       break;
-  //     case KEY_DOWN:
-  //       if (y == 0 && chars < width - 14) break;
-  //       if (chars2pos + width >= chars) wmove(prompt, y+1, chars + 14 - ((y+1)*(width+1)));
-  //       else if ( y < (LINES/2)-4) wmove(prompt, y+1, x);
-  //       break;
+      //   if (y == 1 && x < 14) wmove(prompt, y-1, 14); 
+      //   else if (y > 0) wmove(prompt, y-1, x);
+      //   break;
+      // case KEY_DOWN:
+      //   if (y == 0 && chars < width - 14) break;
+      //   if (chars2pos + width >= chars) wmove(prompt, y+1, chars + 14 - ((y+1)*(width+1)));
+      //   else if ( y < (LINES/2)-4) wmove(prompt, y+1, x);
+      //   break;
       default:
         if (index < chars) {
-          memmove(&nameBuffer[index+1], &nameBuffer[index],(chars-index)*sizeof(char));
+          memmove(&nameBuffer[index+1], &nameBuffer[index], (chars-index)*sizeof(char*));
+        } 
+        if(x == nameWidth - 1) {
+          offset++;
         }
         if (chars < 100) {
           nameBuffer[index] = i;
           chars++;
           index++;
           wmove(name,0,0);
-          waddnstr(name, nameBuffer, (COLS/4)+13);
+          waddnstr(name, &nameBuffer[offset], (COLS/4)+13);
           wmove(name,y,++x);
         }
         break;
     }
+
+#ifdef DEBUG
+  wclear(debug);
+  box(debug,0,0);
+  wmove(debug,1,1);
+  wprintw(debug, nameBuffer);
+  wmove(debug,2,1);
+  wprintw(debug, "offset: %i index: %i chars: %i", offset, index, chars);
+  wmove(debug,3,1);
+  wprintw(debug, "x: %i, y: %i", x, y);
+  wmove(debug,4,1);
+  wprintw(debug, "width: %i nameWidth: %i",width, nameWidth);
+  wrefresh(debug);
+#endif
+
   }
 
   curs_set(0);

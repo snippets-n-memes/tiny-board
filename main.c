@@ -113,12 +113,17 @@ void newTicketPrompt(){
 
   WINDOW *name = newwin(1, (COLS/2)-17, (LINES/4)+2,(COLS/4)+14);
   int nameWidth = (COLS/2)-17;
-  WINDOW *activeWindow = name;
   char *nameBuffer = malloc(sizeof(char) * 100);
+  for(int i = 0; i < 100; i++) nameBuffer[i] = ' ';
+  nameBuffer[99] = '\0';
+
+  WINDOW *activeWindow = name;
+
   wrefresh(activeWindow);
   curs_set(1);
   keypad(activeWindow, TRUE);
   int i = 0, x = 0, y = 0, chars = 0, index = 0, offset = 0;
+
   while(i != 10){
     getyx(activeWindow, y, x);
     wrefresh(activeWindow);
@@ -140,23 +145,32 @@ void newTicketPrompt(){
         chars--;
         index--;
         wmove(activeWindow,0,0);
-        waddnstr(activeWindow, &nameBuffer[offset], (COLS/4)+13);
+        waddnstr(activeWindow, &nameBuffer[offset], nameWidth);
         if (chars < nameWidth - 1) wmove(activeWindow,y,x-1);
         break;
       case KEY_RIGHT:
         if (index < chars && chars < 100){
-          if(x == nameWidth){
+          if(x == nameWidth-1){
+            index++;
             offset++;
+            wmove(activeWindow,0,0);
+            waddnstr(activeWindow, &nameBuffer[offset], nameWidth);
+            wmove(activeWindow,0,nameWidth-1);
           }else{
             index++;
-            wmove(name, y, x + 1);
+            wmove(activeWindow, y, x + 1);
           }
         } 
         break;
       case KEY_LEFT:
-        if (index > 0){
+        if (offset > 0 && x == 0){
           index--;
-          wmove(name, y, x - 1);
+          offset--;
+          waddnstr(activeWindow, &nameBuffer[offset], nameWidth);
+          wmove(activeWindow,0,0);
+        } else if (index > 0){
+          index--;
+          wmove(activeWindow, y, x - 1);
         } 
         break;
       // case KEY_UP:
@@ -180,13 +194,14 @@ void newTicketPrompt(){
           chars++;
           index++;
           wmove(name,0,0);
-          waddnstr(name, &nameBuffer[offset], (COLS/4)+13);
+          waddnstr(name, &nameBuffer[offset], nameWidth);
           wmove(name,y,++x);
         }
         break;
     }
 
 #ifdef DEBUG
+  getyx(activeWindow, y, x);
   wclear(debug);
   box(debug,0,0);
   wmove(debug,1,1);

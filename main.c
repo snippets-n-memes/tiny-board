@@ -111,7 +111,7 @@ void newTicketPrompt(){
   wprintw(prompt,"Description: ");
   wrefresh(prompt);
 
-  WINDOW *name = newwin(1, (COLS/2)-17, (LINES/4)+2,(COLS/4)+13);
+  WINDOW *name = newwin(1, (COLS/2)-17, (LINES/4)+2,(COLS/4)+14);
   int nameWidth = (COLS/2)-17;
   WINDOW *activeWindow = name;
   char *nameBuffer = malloc(sizeof(char) * 100);

@@ -2,6 +2,9 @@
 #define ENUMS_H
 
 #include <ncurses.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
 
 #define WWIDTH (COLS/4)
 typedef enum {

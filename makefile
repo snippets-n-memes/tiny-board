@@ -1,5 +1,11 @@
-c: main.c main.h
-	gcc main.c -lncurses -DCTEST -o tiny-board
+SHELL = /usr/bin/env bash -o pipefail
+.SHELLFLAGS = -ec
 
-go: main.go main.c main.h
-	go build
+SOURCES = $(wildcard src/*.c)
+
+c: $(SOURCES) 
+	gcc $(SOURCES) -lncurses -DCTEST -DDEBUG -o tiny-board
+
+go: src/main.go $(SOURCES)
+	(cd src && go build)
+	mv src/tiny-board ./

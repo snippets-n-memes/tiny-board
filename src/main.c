@@ -110,52 +110,54 @@ void newTicketPrompt(){
   wprintw(prompt,"Description: ");
   wrefresh(prompt);
 
-  WINDOW *name = newwin(1, (COLS/2)-17, (LINES/4)+2,(COLS/4)+14);
-  int nameWidth = (COLS/2)-17;
-  char *nameBuffer = malloc(sizeof(char) * 100);
-  for(int i = 0; i < 100; i++) nameBuffer[i] = ' ';
-  nameBuffer[99] = '\0';
+  textField *ticketName = newTextField(1, (COLS/2)-17, (LINES/4)+2,(COLS/4)+14);
+  initializeBuffer(ticketName, 100);
 
-  WINDOW *activeWindow = name;
+  textField *activeField = ticketName;
+  WINDOW *activeWindow = ticketName->win;
+  char *activeBuffer = ticketName->buffer;
 
   wrefresh(activeWindow);
   curs_set(1);
   keypad(activeWindow, TRUE);
-  int i = 0, x = 0, y = 0, chars = 0, index = 0, offset = 0;
+  int i = 0, x = 0, y = 0, 
+      chars = 0, index = 0, offset = 0, fieldWidth;
 
   while(i != 10){
     getyx(activeWindow, y, x);
     wrefresh(activeWindow);
     i = wgetch(activeWindow);
+    fieldWidth = activeField->width;
 
     switch (i){
       case 127:
       case '\b':
       case KEY_BACKSPACE:
-        if (chars == 0) break;
+        if (chars == 0 || index == 0) break;
         if (index < chars) {
-          nameBuffer[chars] = ' ';
-          memmove(&nameBuffer[index-1], &nameBuffer[index], (chars-index)*sizeof(char*));
+          activeBuffer[chars] = ' ';
+          memmove(&activeBuffer[index-1], &activeBuffer[index], (chars-index)*sizeof(char*));
         } else {
-          nameBuffer[index-1] = ' ';
+          activeBuffer[index-1] = ' ';
         } 
 
-        if (offset > 0) offset--;
+        if (offset > 0 && x == 0) offset--;
+
         chars--;
         index--;
         wmove(activeWindow,0,0);
-        waddnstr(activeWindow, &nameBuffer[offset], nameWidth);
-        if (chars < nameWidth - 1) wmove(activeWindow,y,x-1);
+        waddnstr(activeWindow, &activeBuffer[offset], fieldWidth);
+        if (x > 0) wmove(activeWindow,y,x-1);
         else wmove(activeWindow,y,x);
         break;
       case KEY_RIGHT:
         if (index < chars && chars < 100){
-          if(x == nameWidth-1){
+          if(x == fieldWidth-1){
             index++;
             offset++;
             wmove(activeWindow,0,0);
-            waddnstr(activeWindow, &nameBuffer[offset], nameWidth);
-            wmove(activeWindow,0,nameWidth-1);
+            waddnstr(activeWindow, &activeBuffer[offset], fieldWidth);
+            wmove(activeWindow,0,fieldWidth-1);
           }else{
             index++;
             wmove(activeWindow, y, x + 1);
@@ -166,7 +168,7 @@ void newTicketPrompt(){
         if (offset > 0 && x == 0){
           index--;
           offset--;
-          waddnstr(activeWindow, &nameBuffer[offset], nameWidth);
+          waddnstr(activeWindow, &activeBuffer[offset], fieldWidth);
           wmove(activeWindow,0,0);
         } else if (index > 0){
           index--;
@@ -184,18 +186,18 @@ void newTicketPrompt(){
       //   break;
       default:
         if (index < chars) {
-          memmove(&nameBuffer[index+1], &nameBuffer[index], (chars-index)*sizeof(char*));
+          memmove(&activeBuffer[index+1], &activeBuffer[index], (chars-index)*sizeof(char*));
         } 
-        if(x == nameWidth - 1) {
+        if(x == fieldWidth - 1) {
           offset++;
         }
         if (chars < 100) {
-          nameBuffer[index] = i;
+          activeBuffer[index] = i;
           chars++;
           index++;
-          wmove(name,0,0);
-          waddnstr(name, &nameBuffer[offset], nameWidth);
-          wmove(name,y,++x);
+          wmove(activeWindow,0,0);
+          waddnstr(activeWindow, &activeBuffer[offset], fieldWidth);
+          wmove(activeWindow,y,++x);
         }
         break;
     }
@@ -205,13 +207,13 @@ void newTicketPrompt(){
   wclear(debug);
   box(debug,0,0);
   wmove(debug,1,1);
-  wprintw(debug, nameBuffer);
+  wprintw(debug, activeBuffer);
   wmove(debug,2,1);
   wprintw(debug, "offset: %i index: %i chars: %i", offset, index, chars);
   wmove(debug,3,1);
   wprintw(debug, "x: %i, y: %i", x, y);
   wmove(debug,4,1);
-  wprintw(debug, "width: %i nameWidth: %i",width, nameWidth);
+  wprintw(debug, "width: %i fieldWidth: %i",width, fieldWidth);
   wrefresh(debug);
 #endif
 

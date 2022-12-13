@@ -7,6 +7,9 @@ typedef struct {
   WINDOW *win; 
   int height;
   int width;
+  int index;
+  int offset;
+  int chars;
   char *buffer;
   int bufferLength;
   bool xscroll;

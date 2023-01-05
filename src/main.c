@@ -119,6 +119,7 @@ void newTicketPrompt(){
   textField *description = newTextField(height/2, width -2, wypos+5, wxpos+2);
   initializeBuffer(description, 250);
   description->yscroll = true;
+  description->height = height/2;
   wrefresh(prompt);
 
   textField *activeField = ticketName;
@@ -127,11 +128,13 @@ void newTicketPrompt(){
 
   wrefresh(activeWindow);
   curs_set(1);
-  keypad(activeWindow, TRUE);
+  cbreak();
+
   int i = 0, x = 0, y = 0, 
       chars, index, offset, fieldWidth;
 
   while(i != 10){
+    keypad(activeWindow, TRUE);
     getyx(activeWindow, y, x);
     wrefresh(activeWindow);
     i = wgetch(activeWindow);
@@ -164,40 +167,63 @@ void newTicketPrompt(){
         else wmove(activeWindow,y,x);
         break;
       case KEY_RIGHT:
-        if (index < chars && chars < activeField->bufferLength){
+        if (index < chars) {
+          activeField->index++;
           if(x == fieldWidth-1){
-            activeField->index++;
-            activeField->offset++;
-            wmove(activeWindow,0,0);
-            waddnstr(activeWindow, &activeBuffer[offset], fieldWidth);
-            wmove(activeWindow,0,fieldWidth-1);
+            if (activeField->xscroll) {
+              activeField->offset++;
+              wmove(activeWindow,0,0);
+              waddnstr(activeWindow, &activeBuffer[offset], fieldWidth);
+              wmove(activeWindow,0,fieldWidth-1);
+            } else if (index<chars) {
+              wmove(activeWindow, y+1, 0);
+            } 
           }else{
-            activeField->index++;
             wmove(activeWindow, y, x + 1);
           }
         } 
         break;
       case KEY_LEFT:
-        if (offset > 0 && x == 0){
-          activeField->index--;
-          activeField->offset--;
-          waddnstr(activeWindow, &activeBuffer[offset], fieldWidth);
-          wmove(activeWindow,0,0);
-        } else if (index > 0){
-          activeField->index--;
-          wmove(activeWindow, y, x - 1);
-        } 
+        if(activeField->xscroll) {
+          if (offset > 0 && x == 0){
+            activeField->index--;
+            activeField->offset--;
+            waddnstr(activeWindow, &activeBuffer[offset], fieldWidth);
+            wmove(activeWindow,0,0);
+          } else if (index > 0){
+            activeField->index--;
+            wmove(activeWindow, y, x - 1);
+          } 
+        } else {
+          if (y > 0 && x == 0) {
+            activeField->index--;
+            wmove(activeWindow,y-1,fieldWidth-1);
+          } else if (index > 0) {
+            activeField->index--;
+            wmove(activeWindow, y, x - 1);
+          }
+        }
         break;
       case KEY_UP:
         if (y == 0) activeField = ticketName;
-      //   if (y == 1 && x < 14) wmove(prompt, y-1, 14); 
-      //   else if (y > 0) wmove(prompt, y-1, x);
+        if (activeField->yscroll && y > 0) {
+          activeField->index -= fieldWidth;
+          wmove(activeWindow,y-1,x);
+        }
         break;
       case KEY_DOWN:
         if (y == activeField->height) activeField = description;
-      //   if (y == 0 && chars < width - 14) break;
-      //   if (chars2pos + width >= chars) wmove(prompt, y+1, chars + 14 - ((y+1)*(width+1)));
-      //   else if ( y < (LINES/2)-4) wmove(prompt, y+1, x);
+        if (activeField->yscroll && index < chars && y < activeField->height){
+          if(index + fieldWidth <= chars) {
+            wmove(activeWindow,y+1,x);
+            activeField->index += fieldWidth;
+          } 
+          else {
+            activeField->index += (chars%fieldWidth) + fieldWidth - x;
+            wmove(activeWindow, y+1, chars%fieldWidth);
+          }
+
+        } 
         break;
       default:
         if (index < chars) {
@@ -211,7 +237,15 @@ void newTicketPrompt(){
           activeField->chars++;
           activeField->index++;
           wmove(activeWindow,0,0);
-          waddnstr(activeWindow, &activeBuffer[activeField->offset], fieldWidth);
+          if(activeField->yscroll) {
+            int n = chars;
+            while(n>0) {
+              waddnstr(activeWindow, &activeBuffer[chars-n], fieldWidth);
+              n -= fieldWidth;
+            }
+          } else {
+            waddnstr(activeWindow, &activeBuffer[activeField->offset], fieldWidth);
+          }
           wmove(activeWindow,y,++x);
         }
         break;
@@ -228,7 +262,7 @@ void newTicketPrompt(){
   wmove(debug,3,1);
   wprintw(debug, "x: %i, y: %i", x, y);
   wmove(debug,4,1);
-  wprintw(debug, "width: %i fieldWidth: %i",width, fieldWidth);
+  wprintw(debug, "width: %i fieldWidth: %i fieldHeight: %i",width, fieldWidth, activeField->height);
   wrefresh(debug);
 #endif
 

@@ -162,7 +162,15 @@ void newTicketPrompt(){
         activeField->chars--;
         activeField->index--;
         wmove(activeWindow,0,0);
-        waddnstr(activeWindow, &activeBuffer[activeField->offset], fieldWidth);
+        if(activeField->yscroll) {
+          int n = chars;
+          while(n>0) {
+            waddnstr(activeWindow, &activeBuffer[chars-n], fieldWidth);
+            n -= fieldWidth;
+          }
+        } else {
+          waddnstr(activeWindow, &activeBuffer[activeField->offset], fieldWidth);
+        }
         if (x > 0) wmove(activeWindow,y,x-1);
         else wmove(activeWindow,y,x);
         break;

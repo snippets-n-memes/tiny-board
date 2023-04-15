@@ -19,3 +19,13 @@ void initializeBuffer(textField* field, int length) {
   field->buffer[length-1] = '\0';
 }
 
+radioButton *newRadioButton(int height, int width, int y, int x, char **options) {
+  radioButton *ret = malloc(sizeof(radioButton));
+  ret->win = newwin(height, width, y, x);
+  ret->height = height;
+  ret->width = width;
+  ret->options = options;
+  ret->selection = 0;
+  return ret;
+}
+

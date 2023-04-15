@@ -9,3 +9,6 @@ c: $(SOURCES)
 go: src/main.go $(SOURCES)
 	(cd src && go build)
 	mv src/tiny-board ./
+
+debug: $(SOURCES) 
+	gcc $(SOURCES) -lncurses -DCTEST -g -o tiny-board

@@ -24,6 +24,7 @@ void initializeBoard() {
   curs_set(0);
   refresh();
   noecho();
+  cbreak();
 
 #ifdef DEBUG
   addstr("This is the standard screen\n");
@@ -111,12 +112,25 @@ void newTicketPrompt(){
   wmove(prompt,0,1);
   wprintw(prompt,"Ticket Name: ");
   textField *ticketName = newTextField(1, width-17, wypos+2, wxpos+14);
+  keypad(ticketName->win, TRUE);
   initializeBuffer(ticketName, 100);
   ticketName->xscroll = true;
 
   wmove(prompt,2,1);
+  wprintw(prompt,"Ticket Status: ");
+  char* statuses[] = {"unassigned", "in progress", "blocked", "completed"};
+  radioButton *status = newRadioButton(1, width-2, wypos+6, wxpos+1, statuses);
+  char dest[100] = "";
+  strcpy(dest, statuses[0]);
+  for(int n = 1; n<4; n++) {
+    strcat(dest, " - ");
+    strcat(dest, statuses[n]);
+  }
+
+  wmove(prompt,6,1);
   wprintw(prompt,"Description: ");
-  textField *description = newTextField(height/2, width -2, wypos+5, wxpos+2);
+  textField *description = newTextField(height/2, width -2, wypos+9, wxpos+2);
+  keypad(description->win, TRUE);
   initializeBuffer(description, 250);
   description->yscroll = true;
   description->height = height/2;
@@ -128,16 +142,21 @@ void newTicketPrompt(){
 
   wrefresh(activeWindow);
   curs_set(1);
-  cbreak();
+
+  wmove(status->win, 0, (width - 2 - strlen(dest)) / 2);
+  wprintw(status->win, dest);
+  wrefresh(status->win);
 
   int i = 0, x = 0, y = 0, 
       chars, index, offset, fieldWidth;
 
   while(i != 10){
-    keypad(activeWindow, TRUE);
-    getyx(activeWindow, y, x);
     wrefresh(activeWindow);
+    getyx(activeWindow, y, x);
     i = wgetch(activeWindow);
+    
+    setVars:
+    getyx(activeWindow, y, x);
     fieldWidth = activeField->width;
     activeWindow = activeField->win;
     activeBuffer = activeField->buffer;
@@ -213,20 +232,26 @@ void newTicketPrompt(){
         }
         break;
       case KEY_UP:
-        if (y == 0) activeField = ticketName;
+        if (y == 0 && activeField != ticketName) {
+          activeField = ticketName;
+          goto setVars;
+        } 
         if (activeField->yscroll && y > 0) {
           activeField->index -= fieldWidth;
           wmove(activeWindow,y-1,x);
         }
         break;
       case KEY_DOWN:
-        if (y == activeField->height) activeField = description;
-        if (activeField->yscroll && index < chars && y < activeField->height){
+        if (y == activeField->height && activeField != description) {
+          activeField = description;
+          goto setVars;
+        } 
+        if (activeField->yscroll && y < activeField->height){
           if(index + fieldWidth <= chars) {
             wmove(activeWindow,y+1,x);
             activeField->index += fieldWidth;
           } 
-          else {
+          else if (index < chars) {
             activeField->index += (chars%fieldWidth) + fieldWidth - x;
             wmove(activeWindow, y+1, chars%fieldWidth);
           }
@@ -237,7 +262,7 @@ void newTicketPrompt(){
         if (index < chars) {
           memmove(&activeBuffer[index+1], &activeBuffer[index], (chars-index)*sizeof(char*));
         } 
-        if(x == fieldWidth - 1) {
+        if (x == fieldWidth - 1) {
           activeField->offset++;
         }
         if (chars < activeField->bufferLength) {

@@ -16,7 +16,21 @@ typedef struct {
   bool yscroll;
 } textField;
 
+typedef struct {
+  WINDOW *win; 
+  int height;
+  int width;
+  char **options;
+  int selection;
+} radioButton;
+
+typedef union {
+  radioButton button;
+  textField text;
+} field;
+
 textField *newTextField(int height, int width, int y, int x);
 void initializeBuffer(textField* field, int length);
+radioButton *newRadioButton(int height, int width, int y, int x, char **options);
 
 #endif

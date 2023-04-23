@@ -151,20 +151,33 @@ void newTicketPrompt(){
       chars, index, offset, fieldWidth;
 
   while(i != 10){
-    wrefresh(activeWindow);
-    getyx(activeWindow, y, x);
     i = wgetch(activeWindow);
     
     setVars:
-    getyx(activeWindow, y, x);
     fieldWidth = activeField->width;
     activeWindow = activeField->win;
     activeBuffer = activeField->buffer;
     offset = activeField->offset;
     index = activeField->index;
     chars = activeField->chars;
+    getyx(activeWindow, y, x);
+    wrefresh(activeWindow);
+
 
     switch (i){
+      case 10: // save ticket
+        Ticket *created = newTicket(ticketName->buffer, description->buffer);
+        addTicket(unassigned, created);
+        for(int i = 0; i < 4; i++) {
+          drawList(i);
+          drawMenu(menus[i], title[i]);
+          keypad(menus[i], TRUE);
+          scrollPosition[i] = 0;
+          wrefresh(menus[i]);
+        }
+        level = menu;
+        illuminateMenu(unassigned);
+        break;
       case 127:
       case '\b':
       case KEY_BACKSPACE:
@@ -191,6 +204,7 @@ void newTicketPrompt(){
           waddnstr(activeWindow, &activeBuffer[activeField->offset], fieldWidth);
         }
         if (x > 0) wmove(activeWindow,y,x-1);
+        else if (x == 0 && activeField->yscroll) wmove(activeWindow,y-1,fieldWidth-1);
         else wmove(activeWindow,y,x);
         break;
       case KEY_RIGHT:
@@ -235,8 +249,7 @@ void newTicketPrompt(){
         if (y == 0 && activeField != ticketName) {
           activeField = ticketName;
           goto setVars;
-        } 
-        if (activeField->yscroll && y > 0) {
+        } else if (activeField->yscroll && y > 0) {
           activeField->index -= fieldWidth;
           wmove(activeWindow,y-1,x);
         }
@@ -245,17 +258,14 @@ void newTicketPrompt(){
         if (y == activeField->height && activeField != description) {
           activeField = description;
           goto setVars;
-        } 
-        if (activeField->yscroll && y < activeField->height){
+        } else if (activeField->yscroll && y < activeField->height){
           if(index + fieldWidth <= chars) {
             wmove(activeWindow,y+1,x);
             activeField->index += fieldWidth;
-          } 
-          else if (index < chars) {
+          } else if (index + (chars%fieldWidth) + fieldWidth - x <= chars) {
             activeField->index += (chars%fieldWidth) + fieldWidth - x;
             wmove(activeWindow, y+1, chars%fieldWidth);
           }
-
         } 
         break;
       default:
@@ -272,7 +282,7 @@ void newTicketPrompt(){
           wmove(activeWindow,0,0);
           if(activeField->yscroll) {
             int n = chars;
-            while(n>0) {
+            while(n>=0) {
               waddnstr(activeWindow, &activeBuffer[chars-n], fieldWidth);
               n -= fieldWidth;
             }
@@ -297,6 +307,7 @@ void newTicketPrompt(){
   wmove(debug,4,1);
   wprintw(debug, "width: %i fieldWidth: %i fieldHeight: %i",width, fieldWidth, activeField->height);
   wrefresh(debug);
+  wmove(activeWindow, y, x);
 #endif
 
   }

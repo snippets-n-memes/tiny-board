@@ -235,3 +235,7 @@ void generateTickets() {
   addTicket(blocked, test7);
   addTicket(completed, test8);
 }
+
+Ticket **getTickets() {
+  return tickets;
+}

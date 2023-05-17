@@ -236,6 +236,10 @@ void generateTickets() {
   addTicket(completed, test8);
 }
 
-Ticket **getTickets() {
+Ticket **getAllTickets() {
   return tickets;
+}
+
+Ticket *getTickets(Windows status) {
+  return tickets[status];
 }

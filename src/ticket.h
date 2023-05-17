@@ -18,6 +18,8 @@ struct Ticket{
 
 Ticket *newTicket(char *title, char *desc);
 Ticket *removeTicket(Windows status, int id);
+Ticket **getAllTickets();
+Ticket *getTickets(Windows status);
 void addTicket(Windows status, Ticket *);
 int drawTicket(Ticket *, int lineNumber);
 void illuminateTicket(Ticket *);

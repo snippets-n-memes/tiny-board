@@ -3,6 +3,7 @@
 
 #include "ticket.h"
 #include "menu.h"
+#include "text_field.h"
 
 int run();
 void initializeBoard();

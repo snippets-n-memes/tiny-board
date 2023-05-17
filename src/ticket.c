@@ -235,3 +235,11 @@ void generateTickets() {
   addTicket(blocked, test7);
   addTicket(completed, test8);
 }
+
+Ticket **getAllTickets() {
+  return tickets;
+}
+
+Ticket *getTickets(Windows status) {
+  return tickets[status];
+}

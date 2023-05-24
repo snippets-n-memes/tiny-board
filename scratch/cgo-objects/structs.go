@@ -4,12 +4,10 @@ package main
 // #include "structs.h"
 import "C"
 import "fmt"
-
-type Test struct{
-	id, name
-}
+import "unsafe"
 
 func main() {
 	f := C.getStruct();
-	fmt.Println(f.name);
+	fmt.Println(C.GoString((*C.struct_Test)(unsafe.Pointer(f)).name));
+	fmt.Println((*C.struct_Test)(unsafe.Pointer(f)).id);
 }

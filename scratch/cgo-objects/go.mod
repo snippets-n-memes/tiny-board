@@ -1,3 +1,3 @@
-module example.com/m
+module example.com/struct_test
 
 go 1.20

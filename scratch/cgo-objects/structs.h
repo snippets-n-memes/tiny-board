@@ -4,8 +4,8 @@
 typedef struct Test Test;
 
 struct Test{
-  int id;
-  char *name;
+  int Id;
+  char *Name;
 };
 
 Test *getStruct();

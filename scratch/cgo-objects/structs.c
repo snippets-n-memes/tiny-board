@@ -3,7 +3,7 @@
 
 Test *getStruct(){
   Test *ret = malloc(sizeof(Test));
-  ret->id = 100;
-  ret->name = "Some Return Value";
+  ret->Id = 100;
+  ret->Name = "Some Return Value";
   return ret;
 }

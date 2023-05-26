@@ -5,10 +5,13 @@ package main
 // #include <stdlib.h>
 // #include "main.h"
 import "C"
+import (
+	"fmt"
+)
 
 func main() {
 	C.initializeBoard();
 	for C.run() == 1 {
-
+		C.getTickets();
 	}
 }

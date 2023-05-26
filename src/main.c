@@ -177,6 +177,7 @@ void newTicketPrompt(){
         }
         level = menu;
         illuminateMenu(unassigned);
+
         break;
       case 127:
       case '\b':

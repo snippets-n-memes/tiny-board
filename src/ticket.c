@@ -236,7 +236,11 @@ void generateTickets() {
   addTicket(completed, test8);
 }
 
+<<<<<<< HEAD
 Ticket **getAllTickets() {
+=======
+Ticket **getTickets(Windows status) {
+>>>>>>> 41799db (cleanup)
   return tickets;
 }
 

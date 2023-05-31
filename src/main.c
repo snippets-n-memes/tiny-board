@@ -136,6 +136,18 @@ void newTicketPrompt(){
   description->height = height/2;
   wrefresh(prompt);
 
+  node **fields = malloc(3 * sizeof(node*));
+  fields[0]->value.text = *(ticketName);
+  fields[0]->isText = true;
+
+  fields[1]->value.button = *(status);
+  fields[1]->isText = false;
+
+  fields[2]->value.text = *(description);
+  fields[2]->isText = true;
+
+  int fieldIndex = 0;
+
   textField *activeField = ticketName;
   WINDOW *activeWindow = ticketName->win;
   char *activeBuffer = ticketName->buffer;
@@ -246,8 +258,10 @@ void newTicketPrompt(){
         }
         break;
       case KEY_UP:
-        if (y == 0 && activeField != ticketName) {
-          activeField = ticketName;
+        if (y == 0 && fieldIndex > 0) {
+          fieldIndex--;
+          if (fields[fieldIndex]->isText)
+            activeField = &fields[fieldIndex]->value.text;
           goto setVars;
         } else if (activeField->yscroll && y > 0) {
           activeField->index -= fieldWidth;
@@ -255,8 +269,10 @@ void newTicketPrompt(){
         }
         break;
       case KEY_DOWN:
-        if (y == activeField->height && activeField != description) {
-          activeField = description;
+        if (y == activeField->height && fieldIndex < 2) {
+          fieldIndex++;
+          if (fields[fieldIndex]->isText)
+            activeField = &fields[fieldIndex]->value.text;
           goto setVars;
         } else if (activeField->yscroll && y < activeField->height){
           if(index + fieldWidth <= chars) {

@@ -29,6 +29,11 @@ typedef union {
   textField text;
 } field;
 
+typedef struct {
+  field value;
+  bool isText;
+} node;
+
 textField *newTextField(int height, int width, int y, int x);
 void initializeBuffer(textField* field, int length);
 radioButton *newRadioButton(int height, int width, int y, int x, char **options);

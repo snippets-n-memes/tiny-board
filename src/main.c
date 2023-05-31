@@ -93,6 +93,17 @@ int run() {
   return 1;
 }
 
+void refreshOptions(Options *current) {
+  fieldWidth = activeField->width;
+    activeWindow = activeField->win;
+    activeBuffer = activeField->buffer;
+    offset = activeField->offset;
+    index = activeField->index;
+    chars = activeField->chars;
+    getyx(activeWindow, y, x);
+    wrefresh(activeWindow);
+}
+
 void newTicketPrompt(){
   int width = COLS/2, // -1
       height = LINES/2,
@@ -136,8 +147,8 @@ void newTicketPrompt(){
   description->height = height/2;
   wrefresh(prompt);
 
-  node *fields[3];
-  for(int i=0; i < 3; i++)fields[i] = malloc(sizeof(node));
+  menuNode *fields[3];
+  for(int i=0; i < 3; i++)fields[i] = malloc(sizeof(menuNode));
   fields[0]->value.text = *(ticketName);
   fields[0]->isText = true;
 
@@ -149,7 +160,7 @@ void newTicketPrompt(){
 
   int fieldIndex = 0;
 
-  textField *activeField = ticketName;
+  menuNode *activeField = fields[0];
   WINDOW *activeWindow = ticketName->win;
   char *activeBuffer = ticketName->buffer;
 
@@ -166,17 +177,21 @@ void newTicketPrompt(){
   while(i != 10){
     i = wgetch(activeWindow);
     
-    setVars:
-    fieldWidth = activeField->width;
-    activeWindow = activeField->win;
-    activeBuffer = activeField->buffer;
-    offset = activeField->offset;
-    index = activeField->index;
-    chars = activeField->chars;
-    getyx(activeWindow, y, x);
-    wrefresh(activeWindow);
+#define resetVars() \
+  if (activeField->isText) { \
+    fieldWidth = activeField->value->text->width; \
+    activeWindow = activeField->value->text->win; \
+    activeBuffer = activeField->value->text->buffer; \
+    offset = activeField->value->text->offset; \
+    index = activeField->value->text->index; \
+    chars = activeField->chars; \
+  } else { \
+    \
+  } \
+  getyx(activeWindow, y, x); \
+  wrefresh(activeWindow);
 
-
+    resetVars();
     switch (i){
       case 10: // save ticket
         Ticket *created = newTicket(ticketName->buffer, description->buffer);

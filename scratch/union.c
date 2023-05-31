@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 
 int main(void) {
   typedef struct {
@@ -14,9 +15,14 @@ int main(void) {
   } B;
 
   typedef union AorB{
-    A itsA;
-    B itsB;
+    A A;
+    B B;
   } AorB;
+
+  typedef struct wrapper {
+    AorB value;
+    bool isA;
+  } wrapper;
 
   A objectA;
   objectA.x = 0;
@@ -29,12 +35,18 @@ int main(void) {
   objectB.count = 15;
 
   union AorB testA;
-  testA.itsA = objectA;
+  testA.A = objectA;
 
   union AorB testB;
-  testB.itsB = objectB;
+  testB.B = objectB;
 
-  printf("A.x: %d\n", testA.itsA.x);
-  printf("B.x: %d\n", testB.itsB.x);
-  printf("B.name: %s\n", testB.itsB.name);
+  wrapper container;
+  container.isA = true;
+  container.value = testA;
+
+  printf("A.x: %d\n", testA.A.x);
+  printf("B.x: %d\n", testB.B.x);
+  printf("B.name: %s\n", testB.B.name);
+  printf("testA.B.name: ", testA.B.name);
+  if (container.isA) printf("isA is true in union container");
 }

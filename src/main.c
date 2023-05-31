@@ -136,7 +136,8 @@ void newTicketPrompt(){
   description->height = height/2;
   wrefresh(prompt);
 
-  node **fields = malloc(3 * sizeof(node*));
+  node *fields[3];
+  for(int i=0; i < 3; i++)fields[i] = malloc(sizeof(node));
   fields[0]->value.text = *(ticketName);
   fields[0]->isText = true;
 

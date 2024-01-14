@@ -109,23 +109,25 @@ void newTicketPrompt(){
 
   WINDOW *prompt = newwin(height-4, width, wypos+2, wxpos);
 
+  wmove(prompt,2,1);
+  wprintw(prompt,"Ticket Status: ");
+  char* statuses[] = {"unassigned", "in progress", "blocked", "completed"};
+  radioButton *status = newRadioButton(1, width-2, wypos+6, wxpos+1, statuses);
+  char dest[100] = "";
+  
+  strcpy(dest, statuses[0]);
+  for(int n = 1; n<4; n++) {
+    strcat(dest, " - ");
+    strcat(dest, statuses[n]);
+  }
+
   wmove(prompt,0,1);
   wprintw(prompt,"Ticket Name: ");
   textField *ticketName = newTextField(1, width-17, wypos+2, wxpos+14);
   keypad(ticketName->win, TRUE);
   initializeBuffer(ticketName, 100);
   ticketName->xscroll = true;
-
-  wmove(prompt,2,1);
-  wprintw(prompt,"Ticket Status: ");
-  char* statuses[] = {"unassigned", "in progress", "blocked", "completed"};
-  radioButton *status = newRadioButton(1, width-2, wypos+6, wxpos+1, statuses);
-  char dest[100] = "";
-  strcpy(dest, statuses[0]);
-  for(int n = 1; n<4; n++) {
-    strcat(dest, " - ");
-    strcat(dest, statuses[n]);
-  }
+  wrefresh(prompt);
 
   wmove(prompt,6,1);
   wprintw(prompt,"Description: ");
@@ -134,7 +136,10 @@ void newTicketPrompt(){
   initializeBuffer(description, 250);
   description->yscroll = true;
   description->height = height/2;
-  wrefresh(prompt);
+
+  wmove(status->win, 0, (width - 2 - strlen(dest)) / 2);
+  wprintw(status->win, "%s", dest);
+  wrefresh(status->win);
 
   textField *activeField = ticketName;
   WINDOW *activeWindow = ticketName->win;
@@ -143,9 +148,7 @@ void newTicketPrompt(){
   wrefresh(activeWindow);
   curs_set(1);
 
-  wmove(status->win, 0, (width - 2 - strlen(dest)) / 2);
-  wprintw(status->win, dest);
-  wrefresh(status->win);
+  // wmove(prompt,0,1);
 
   int i = 0, x = 0, y = 0, 
       chars, index, offset, fieldWidth;

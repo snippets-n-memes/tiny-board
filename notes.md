@@ -2,4 +2,5 @@
 - the radioButton interface needs a rework
     - statuses are just written to the field
     - we need them to be selectable, possibly by being separate windows?
-    
+- editTicketPrompt needs to be implemented
+    - could also leverage a helper function for drawing the window (same one as newTicketPrompt)

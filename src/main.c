@@ -127,15 +127,15 @@ void newTicketPrompt(){
   keypad(ticketName->win, TRUE);
   initializeBuffer(ticketName, 100);
   ticketName->xscroll = true;
-  wrefresh(prompt);
 
   wmove(prompt,6,1);
   wprintw(prompt,"Description: ");
-  textField *description = newTextField(height/2, width -2, wypos+9, wxpos+2);
+  textField *description = newTextField((height/2) -1, width -2, wypos+9, wxpos+2);
   keypad(description->win, TRUE);
   initializeBuffer(description, 250);
   description->yscroll = true;
   description->height = height/2;
+  wrefresh(prompt);
 
   wmove(status->win, 0, (width - 2 - strlen(dest)) / 2);
   wprintw(status->win, "%s", dest);

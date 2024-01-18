@@ -95,7 +95,7 @@ int drawTicket(Ticket *ticket, int line){
   char* head = ticket->description;
 
   wmove(win,y,2);
-  waddstr(win,ticket->name);
+  waddnstr(win,ticket->name, menuWidth);
   wmove(win,++y,2);
   whline(win, ACS_HLINE, WWIDTH - 5);
 

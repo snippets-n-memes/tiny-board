@@ -232,7 +232,7 @@ void newTicketPrompt(){
           if (offset > 0 && x == 0){
             activeField->index--;
             activeField->offset--;
-            waddnstr(activeWindow, &activeBuffer[offset], fieldWidth);
+            waddnstr(activeWindow, &activeBuffer[offset -1], fieldWidth);
             wmove(activeWindow,0,0);
           } else if (index > 0){
             activeField->index--;

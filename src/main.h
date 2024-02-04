@@ -5,7 +5,7 @@
 #include "menu.h"
 #include "text_field.h"
 
-int run();
+Ticket** run();
 void initializeBoard();
 void newTicketPrompt();
 

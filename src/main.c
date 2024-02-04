@@ -57,7 +57,7 @@ void initializeBoard() {
 }
 
 // idea: return the board as a list of tickets for golang to unmarshall 
-int run() {
+Ticket** run() {
   key = wgetch(menus[menuSelection]);
 
   switch (key) {
@@ -66,6 +66,7 @@ int run() {
       endwin();
       return 0;
     case 'n':
+      dimMenu(menuSelection);
       newTicketPrompt();
       break;
     case 10: // enter
@@ -74,7 +75,7 @@ int run() {
         ticketSelection = tickets[menuSelection];
         dimMenu(menuSelection);
         if (ticketSelection != NULL) illuminateTicket(ticketSelection);
-      }
+      } else 
       break;
     case 27: // esc
       if (level != menu) {
@@ -84,13 +85,15 @@ int run() {
       }
       break;
     default:
-      if (level == menu) 
+      if (level == menu) {
         selectMenu(key);
-      else if (level == ticket) 
+      }
+      else if (level == ticket) {
         selectTicket(key);
+      }
       break;
   }
-  return 1;
+  return tickets;
 }
 
 void newTicketPrompt(){

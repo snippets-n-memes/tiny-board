@@ -1,3 +1,4 @@
 tiny-board
 scratch/a.out
 scratch/cgo-objects/struct_test
+scratch/cgo-ncurses/embed_test

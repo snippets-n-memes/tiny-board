@@ -7,3 +7,11 @@ Test *getStruct(){
   ret->Name = "Some Return Value";
   return ret;
 }
+
+TestInfo *getArray(){
+  int i;
+  
+  for(i=0; i<10; i++) {
+
+  }
+}

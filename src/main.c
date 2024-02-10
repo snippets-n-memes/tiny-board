@@ -64,7 +64,11 @@ void initializeBoard() {
   }
 }
 
-Ticket** run() {
+Ticket** getMenuLists() {
+  return tickets;
+}
+
+int run() {
   key = wgetch(menus[menuSelection]);
 
   switch (key) {
@@ -100,7 +104,7 @@ Ticket** run() {
       }
       break;
   }
-  return tickets;
+  return 1;
 }
 
 void newTicketPrompt(){

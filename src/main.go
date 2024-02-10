@@ -18,11 +18,14 @@ type Ticket C.Ticket
 func main() {
 	C.initializeBoard();
 	var tickets **C.Ticket;
-	tickets = C.run();
-	tickets = C.run();
+
+	for C.run() == 1 {
+		tickets = C.getMenuLists();
+	}
 	
 	C.deleteMenus();
 	C.endwin();
+	C.curs_set(1)
 	C.refresh();
 
 	clear := exec.Command("reset")
@@ -31,9 +34,11 @@ func main() {
 
 	ticketSlice := (*[1 << 30]*C.Ticket)(unsafe.Pointer(tickets))[:4:4]
 
-	fmt.Println(strings.TrimSpace(C.GoString(ticketSlice[0].name)))
-	fmt.Println(strings.TrimSpace(C.GoString(ticketSlice[0].next.name)))
-	fmt.Println("done.\n")
-
-
+	fmt.Println("unnassinged:")
+	ticket := ticketSlice[0];
+	for ticket != nil {
+		fmt.Print("   "+strings.TrimSpace(C.GoString(ticket.name)))
+		fmt.Print("- "+strings.TrimSpace(C.GoString(ticket.description)))
+		ticket = ticket.next
+	}
 }

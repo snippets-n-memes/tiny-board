@@ -5,10 +5,11 @@
 #include "menu.h"
 #include "text_field.h"
 
-Ticket** run();
+int run();
 void initializeBoard();
 void newTicketPrompt();
 void deleteMenus();
+Ticket** getMenuLists();
 
 WINDOW *newMenu(int x);
 void selectMenu(int key);

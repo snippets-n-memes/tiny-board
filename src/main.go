@@ -10,19 +10,30 @@ import (
 	"os"
 	"os/exec"
 	"unsafe"
+	"strings"
 )
+
+type Ticket C.Ticket
 
 func main() {
 	C.initializeBoard();
 	var tickets **C.Ticket;
-	for i := 0; i<10; i++ {
-		tickets = C.run()
-	}
+	tickets = C.run();
+	tickets = C.run();
+	
+	C.deleteMenus();
+	C.endwin();
+	C.refresh();
 
-	clear := exec.Command("clear")
+	clear := exec.Command("reset")
 	clear.Stdout = os.Stdout
 	clear.Run();
-	p := (*[]C.Ticket)tickets
-	fmt.Print((*p)[0])
-	fmt.Print("done.\n")
+
+	ticketSlice := (*[1 << 30]*C.Ticket)(unsafe.Pointer(tickets))[:4:4]
+
+	fmt.Println(strings.TrimSpace(C.GoString(ticketSlice[0].name)))
+	fmt.Println(strings.TrimSpace(C.GoString(ticketSlice[0].next.name)))
+	fmt.Println("done.\n")
+
+
 }

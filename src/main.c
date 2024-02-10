@@ -19,6 +19,14 @@ int main() {
 }
 #endif
 
+void deleteMenus() {
+  for(int i = 0; i < 4; i++) {
+    wclear(menus[i]);
+    wrefresh(menus[i]);
+    delwin(menus[i]);
+  }
+}
+
 void initializeBoard() {
   initscr();
   curs_set(0);
@@ -56,7 +64,6 @@ void initializeBoard() {
   }
 }
 
-// idea: return the board as a list of tickets for golang to unmarshall 
 Ticket** run() {
   key = wgetch(menus[menuSelection]);
 
@@ -181,6 +188,12 @@ void newTicketPrompt(){
           scrollPosition[i] = 0;
           wrefresh(menus[i]);
         }
+
+        delwin(description->win);
+        delwin(ticketName->win);
+        delwin(status->win);
+        delwin(prompt);
+        delwin(border);
         level = menu;
         illuminateMenu(unassigned);
         break;
@@ -297,29 +310,31 @@ void newTicketPrompt(){
           }
           wmove(activeWindow,y,++x);
         }
+        
+        curs_set(0);
+        wrefresh(prompt);
         break;
     }
 
-#ifdef DEBUG
-  getyx(activeWindow, y, x);
-  wclear(debug);
-  box(debug,0,0);
-  wmove(debug,1,1);
-  wprintw(debug, activeBuffer);
-  wmove(debug,2,1);
-  wprintw(debug, "offset: %i index: %i chars: %i", offset, index, chars);
-  wmove(debug,3,1);
-  wprintw(debug, "x: %i, y: %i", x, y);
-  wmove(debug,4,1);
-  wprintw(debug, "width: %i fieldWidth: %i fieldHeight: %i",width, fieldWidth, activeField->height);
-  wrefresh(debug);
-  wmove(activeWindow, y, x);
-#endif
+// #ifdef DEBUG
+//   getyx(activeWindow, y, x);
+//   wclear(debug);
+//   box(debug,0,0);
+//   wmove(debug,1,1);
+//   wprintw(debug, activeBuffer);
+//   wmove(debug,2,1);
+//   wprintw(debug, "offset: %i index: %i chars: %i", offset, index, chars);
+//   wmove(debug,3,1);
+//   wprintw(debug, "x: %i, y: %i", x, y);
+//   wmove(debug,4,1);
+//   wprintw(debug, "width: %i fieldWidth: %i fieldHeight: %i",width, fieldWidth, activeField->height);
+//   wrefresh(debug);
+//   wmove(activeWindow, y, x);
+// #endif
 
   }
 
-  curs_set(0);
-  wrefresh(prompt);
+
 }
 
 void selectTicket(int key) {

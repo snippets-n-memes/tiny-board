@@ -8,6 +8,7 @@
 Ticket** run();
 void initializeBoard();
 void newTicketPrompt();
+void deleteMenus();
 
 WINDOW *newMenu(int x);
 void selectMenu(int key);

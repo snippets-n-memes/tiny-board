@@ -1,4 +1,4 @@
-#include "menu.h"
+#include "main.h"
 
 extern WINDOW *menus[];
 extern Ticket *tickets[];
@@ -41,7 +41,7 @@ void drawMenu(WINDOW *menu, char* title) {
 }
 
 void illuminateMenu(int status) {
-  WINDOW *win = menus[status];
+  WINDOW*win = menus[status];
   use_default_colors();
   start_color();
   init_pair(1,COLOR_GREEN,-1);
